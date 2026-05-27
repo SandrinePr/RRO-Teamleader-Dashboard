@@ -120,7 +120,8 @@ string? graphAppToken = null;
 var graphAppTokenExpiresUtc = DateTimeOffset.MinValue;
 var graphTokenLock = new object();
 
-builder.WebHost.UseUrls($"http://localhost:{LocalDevApiPort}");
+if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PORT")))
+  builder.WebHost.UseUrls($"http://localhost:{LocalDevApiPort}");
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
   p.SetIsOriginAllowed(origin =>
   {
