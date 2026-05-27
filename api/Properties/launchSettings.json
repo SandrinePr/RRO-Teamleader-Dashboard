@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "api": {
+      "commandName": "Project",
+      "applicationUrl": "http://localhost:5055",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "API_PUBLIC_URL": "http://localhost:5055"
+      }
+    }
+  }
+}

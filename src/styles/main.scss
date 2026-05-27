@@ -1,0 +1,1476 @@
+// Globale stijlen voor het dashboard: thema (Red Rock–achtig), layout, tabellen, deals-excel, overzicht, sales-activiteit, responsive.
+// Red Rock Agency–inspired: donker navy, wit/zilver tekst, koper/oranje accent
+// Referentie: https://redrockagency.nl
+$rr-bg-base: #0f172a;
+$rr-bg-deep: #020617;
+$rr-bg-card: rgba(30, 41, 59, 0.85);
+$rr-bg-card-solid: #1e293b;
+$rr-bg-header: linear-gradient(92deg, #020617 0%, #0f172a 38%, #1e3a5f 100%);
+$rr-accent: #ea580c;
+$rr-accent-soft: #fb923c;
+$rr-text: #f8fafc;
+$rr-text-muted: #cbd5e1;
+$rr-text-dim: #94a3b8;
+$rr-border: rgba(148, 163, 184, 0.25);
+$rr-radial: radial-gradient(ellipse 90% 70% at 50% -25%, rgba(56, 189, 248, 0.14), transparent 52%);
+
+/* Tabellen: altijd licht oppervlak + donkere tekst (niet hetzelfde navy als de pagina) */
+$rr-table-surface: #f8fafc;
+$rr-table-surface-alt: #f1f5f9;
+$rr-table-header: #e2e8f0;
+$rr-table-text: #0f172a;
+$rr-table-text-muted: #334155;
+$rr-table-border: #cbd5e1;
+$rr-table-cell: #ffffff;
+
+:root {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: dark;
+  color: $rr-text;
+  background-color: $rr-bg-base;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: $rr-bg-deep;
+  background-image: $rr-radial, linear-gradient(180deg, $rr-bg-base 0%, $rr-bg-deep 55%, #020617 100%);
+  background-attachment: fixed;
+  color: $rr-text;
+}
+
+#app {
+  min-height: 100vh;
+  color: $rr-text;
+}
+
+a {
+  color: $rr-accent-soft;
+  &:hover {
+    color: $rr-text;
+  }
+}
+
+/* Layout */
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: $rr-text;
+}
+
+.layout-header {
+  padding: 0.55rem 1.1rem;
+  background: $rr-bg-header;
+  border-bottom: 1px solid rgba(251, 146, 60, 0.22);
+  box-shadow: 0 4px 24px rgba(2, 6, 23, 0.45);
+}
+
+.layout-logo {
+  display: block;
+  height: 34px;
+  width: auto;
+}
+
+.layout-main {
+  flex: 1;
+  padding: 1.1rem 1.5rem 1.5rem;
+  max-width: 1800px;
+  margin: 0 auto;
+  width: 100%;
+  color: $rr-text;
+}
+
+/* Maand-tabs linksonder */
+.sheet-tabs {
+  position: fixed;
+  left: 1.5rem;
+  bottom: 0.75rem;
+  display: inline-flex;
+  gap: 0.25rem;
+  background: $rr-bg-card-solid;
+  padding: 0.35rem;
+  border-radius: 10px;
+  border: 1px solid $rr-border;
+  box-shadow: 0 8px 32px rgba(2, 6, 23, 0.5);
+  z-index: 40;
+}
+.sheet-tab {
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: $rr-text-muted;
+  text-decoration: none;
+  background: transparent;
+}
+.sheet-tab:hover {
+  color: $rr-text;
+}
+.sheet-tab-active {
+  background: linear-gradient(180deg, $rr-accent-soft 0%, $rr-accent 100%);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Dashboard grid (referentie-stijl) */
+.dashboard-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: auto auto auto;
+}
+.dashboard-page-title {
+  grid-column: 1 / -1;
+  margin: 0 0 0.25rem 0;
+  font-size: 1.5rem;
+  color: $rr-text;
+}
+.kpi-cards {
+  grid-column: 1 / -1;
+}
+
+/* Widget-kaarten */
+.widget {
+  background: $rr-bg-card;
+  border-radius: 14px;
+  padding: 1.25rem;
+  border: 1px solid $rr-border;
+  color: $rr-text;
+  backdrop-filter: blur(8px);
+}
+.widget-header {
+  margin-bottom: 1rem;
+}
+.widget-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: $rr-text;
+}
+.widget-subtitle {
+  display: block;
+  font-size: 0.8rem;
+  color: $rr-text-dim;
+  margin-top: 0.2rem;
+}
+.widget-body { min-height: 120px; }
+.widget-full { grid-column: 1 / -1; }
+
+/* Sales overzicht */
+.sales-overzicht { padding: 0.25rem 0; }
+.sales-overzicht-row { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1rem; }
+.sales-overzicht-row:last-child { margin-bottom: 0; }
+.sales-kpi { min-width: 140px; }
+.sales-kpi-label { display: block; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); margin-bottom: 0.25rem; }
+.sales-kpi-value { font-size: 1.35rem; font-weight: 700; }
+.sales-kpi-open { color: #4a9eff; }
+.sales-kpi-won { color: #6bcf7f; }
+.sales-kpi-lost { color: #e57373; }
+.sales-kpi-meta { display: block; font-size: 0.8rem; color: rgba(255, 255, 255, 0.55); }
+
+/* Recent aangemaakt */
+.recent-aangemaakt { font-size: 0.9rem; }
+.recent-empty { margin: 0; color: rgba(255, 255, 255, 0.5); }
+.recent-list { list-style: none; padding: 0; margin: 0; }
+.recent-item { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; padding: 0.4rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.recent-item:last-child { border-bottom: none; }
+.recent-type { font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 4px; font-weight: 600; flex-shrink: 0; }
+.recent-type-deal { background: rgba(74, 158, 255, 0.25); color: #4a9eff; }
+.recent-type-contact { background: rgba(107, 207, 127, 0.25); color: #6bcf7f; }
+.recent-type-company { background: rgba(240, 173, 78, 0.25); color: #f0ad4e; }
+.recent-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: $rr-text; }
+.recent-meta { font-size: 0.8rem; color: rgba(255, 255, 255, 0.55); }
+
+/* Activiteit */
+.activiteit-overzicht { display: flex; flex-direction: column; gap: 1rem; }
+.activiteit-section h4 { margin: 0 0 0.5rem 0; font-size: 0.9rem; color: $rr-text; font-weight: 600; }
+.activiteit-empty { margin: 0; font-size: 0.85rem; color: rgba(255, 255, 255, 0.5); }
+.activiteit-list { list-style: none; padding: 0; margin: 0; }
+.activiteit-item { padding: 0.35rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06); font-size: 0.85rem; }
+.activiteit-item:last-child { border-bottom: none; }
+.activiteit-title { display: block; color: $rr-text-muted; }
+.activiteit-meta { font-size: 0.75rem; color: rgba(255, 255, 255, 0.55); }
+
+/* Pipeline Discovery & Offerte */
+.pipeline-discovery-wrap { display: flex; flex-direction: column; gap: 1rem; }
+.pipeline-month-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; color: $rr-text-muted; }
+.pipeline-month-select {
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid $rr-border;
+  background: $rr-bg-card-solid;
+  color: $rr-text;
+  font-size: 0.95rem;
+  min-width: 220px;
+}
+.pipeline-month-select:focus {
+  outline: none;
+  border-color: $rr-accent;
+  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.35);
+}
+.pipeline-month-select option {
+  background: $rr-bg-card-solid;
+  color: $rr-text;
+}
+.pipeline-discovery-summary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: $rr-table-surface;
+  border: 1px solid $rr-table-border;
+  border-radius: 10px;
+  font-size: 1rem;
+  color: $rr-table-text;
+}
+.pipeline-discovery-summary-value { font-weight: 700; color: #15803d; }
+.pipeline-discovery {
+  overflow-x: auto;
+  background: $rr-table-surface;
+  border: 1px solid $rr-table-border;
+  border-radius: 10px;
+  padding: 0.5rem;
+}
+.pipeline-discovery-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.pipeline-discovery-table th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid $rr-table-border;
+  background: $rr-table-header;
+  color: $rr-table-text;
+  font-weight: 600;
+}
+.pipeline-discovery-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  color: $rr-table-text-muted;
+  background: $rr-table-cell;
+}
+.pipeline-discovery-table tbody tr:nth-child(even) td { background: $rr-table-surface-alt; }
+.pipeline-discovery-table tbody tr:hover td { background: #e2e8f0; }
+.pipeline-discovery-empty { margin: 1rem 0 0 0; font-size: 0.85rem; color: rgba(255, 255, 255, 0.5); }
+
+/* Deals & Offertes */
+.dashboard-deals-only { max-width: 1800px; }
+.deals-offertes-toolbar { margin-bottom: 1.25rem; }
+.deals-offertes-controls { display: flex; flex-direction: column; gap: 0.75rem; }
+.deals-offertes-month-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+.month-tab {
+  border: 1px solid $rr-border;
+  background: rgba(51, 65, 85, 0.5);
+  color: $rr-text-muted;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.month-tab:hover {
+  background: rgba(71, 85, 105, 0.65);
+  color: $rr-text;
+}
+.month-tab-active {
+  background: linear-gradient(180deg, $rr-accent-soft 0%, $rr-accent 100%);
+  border-color: rgba(251, 146, 60, 0.5);
+  color: #fff;
+  font-weight: 700;
+}
+
+.deals-offertes-excel {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center; /* centreer de maand-secties */
+}
+
+/* Deals & Offertes tools */
+.deals-excel-tools { width: 100%; max-width: 1700px; margin-bottom: 0.75rem; }
+.deals-excel-tools-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.deals-excel-input {
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.92);
+  min-width: 260px;
+}
+.deals-excel-input-small { min-width: 110px; width: 110px; }
+.deals-excel-select {
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.92);
+}
+.deals-excel-btn {
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(74, 158, 255, 0.18);
+  color: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+}
+.deals-excel-btn:hover { background: rgba(74, 158, 255, 0.26); }
+.deals-excel-checkbox { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.9rem; color: rgba(255, 255, 255, 0.85); }
+
+.deals-excel-cell-btn {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+.deals-excel-cell-btn:hover { text-decoration: underline; }
+.deals-excel-cell-stale { box-shadow: inset 0 0 0 9999px rgba(231, 76, 60, 0.10); }
+.deals-excel-cell-carry {
+  /* Licht en overzichtelijk: subtiele carry-over markering (telt niet mee). */
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(148, 163, 184, 0.15) 0px,
+      rgba(148, 163, 184, 0.15) 6px,
+      rgba(148, 163, 184, 0.24) 6px,
+      rgba(148, 163, 184, 0.24) 12px
+    ),
+    #f8fafc !important;
+  border-color: rgba(148, 163, 184, 0.45) !important;
+  color: #334155 !important;
+}
+.deals-excel-insights { width: 100%; max-width: 1700px; display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
+.deals-excel-insights-card {
+  border: 1px solid $rr-table-border;
+  border-radius: 10px;
+  background: $rr-table-surface;
+  padding: 0.85rem 1rem;
+  color: $rr-table-text;
+}
+.deals-excel-insights-card strong { display: block; margin-bottom: 0.5rem; color: $rr-table-text; }
+.deals-excel-insights-chart { width: 100%; }
+
+.deals-excel-owner-table-wrap {
+  overflow: auto;
+  background: $rr-table-surface;
+  border: 1px solid $rr-table-border;
+  border-radius: 10px;
+  padding: 0.5rem;
+}
+.deals-excel-owner-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 900px; }
+.deals-excel-owner-table th, .deals-excel-owner-table td {
+  border: 1px solid $rr-table-border;
+  padding: 0.45rem 0.6rem;
+  text-align: left;
+}
+.deals-excel-owner-table th {
+  background: $rr-table-header;
+  color: $rr-table-text;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.deals-excel-owner-table td {
+  background: $rr-table-cell;
+  color: $rr-table-text-muted;
+}
+.deals-excel-owner-table tbody tr:nth-child(even) td { background: $rr-table-surface-alt; }
+.deals-excel-owner-table tbody tr:hover td { background: #e2e8f0; }
+
+.deals-excel-targets { display: flex; flex-direction: column; gap: 0.75rem; }
+.deals-excel-targets-row { display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: center; }
+.deals-excel-targets-label { font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); }
+.deals-excel-targets-field { display: inline-flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; }
+.deals-excel-progress { border-top: 1px solid rgba(255, 255, 255, 0.10); padding-top: 0.75rem; }
+.deals-excel-progress-item { display: grid; gap: 0.2rem; font-size: 0.9rem; }
+.deals-excel-alerts { margin-top: 0.75rem; display: grid; gap: 0.5rem; }
+.deals-excel-alert-bad { padding: 0.55rem 0.75rem; border-radius: 10px; background: rgba(231, 76, 60, 0.14); border: 1px solid rgba(231, 76, 60, 0.20); }
+.deals-excel-alert-warn { padding: 0.55rem 0.75rem; border-radius: 10px; background: rgba(240, 173, 78, 0.12); border: 1px solid rgba(240, 173, 78, 0.20); }
+.deals-excel-mini-list { list-style: none; padding: 0; margin: 0.35rem 0 0 0; display: grid; gap: 0.25rem; }
+.deals-excel-link { background: transparent; border: none; padding: 0; color: #0369a1; cursor: pointer; text-align: left; font: inherit; }
+.deals-excel-link:hover { color: $rr-accent; text-decoration: underline; }
+.deals-excel-month {
+  background: $rr-table-surface;
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid $rr-table-border;
+  width: 100%;
+  max-width: 1700px;
+  max-height: 700px;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+.deals-excel-month-title {
+  margin: 0 0 1rem 0;
+  padding: 0.55rem 0;
+  font-size: 1.05rem;
+  background: linear-gradient(90deg, #fed7aa, #fdba74);
+  color: #7c2d12;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid rgba(234, 88, 12, 0.25);
+}
+.deals-excel-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; table-layout: fixed; min-width: 1280px; }
+.deals-excel-table th {
+  text-align: left;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid $rr-table-border;
+  background: $rr-table-header;
+  color: $rr-table-text;
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.deals-excel-table thead tr:first-child th { height: 42px; }
+.deals-excel-table thead tr.deals-excel-th-metrics th {
+  top: 42px;
+  z-index: 2;
+  height: 34px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.deals-excel-table thead tr.deals-excel-th-metrics th.deals-excel-th-metric-conversie {
+  background: rgba(155, 89, 182, 0.24);
+  color: #1f2937;
+}
+.deals-excel-table thead tr.deals-excel-th-metrics th.deals-excel-th-metric-succesratio {
+  background: rgba(243, 156, 18, 0.24);
+  color: #1f2937;
+}
+.deals-excel-table th.deals-excel-th-sub { top: 76px; z-index: 2; font-weight: 600; color: $rr-table-text; background: #dbeafe; }
+.deals-excel-table td {
+  padding: 0.48rem 0.75rem;
+  border: 1px solid $rr-table-border;
+  color: $rr-table-text;
+  vertical-align: top;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: $rr-table-cell;
+}
+.deals-excel-table tbody tr:nth-child(even):not(.deals-excel-subtotaal):not(.deals-excel-totaalwaarde):not(.deals-excel-succesratio):not(.deals-excel-conversie) td { background: $rr-table-cell; }
+.deals-excel-table tbody tr:hover:not(.deals-excel-subtotaal):not(.deals-excel-totaalwaarde):not(.deals-excel-succesratio):not(.deals-excel-conversie) td { background: $rr-table-cell; }
+
+.deals-excel-th { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
+.deals-excel-th-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Header-cellen hebben lichte achtergrond — percentage moet donker zijn */
+.deals-excel-table thead .deals-excel-th-pct { color: $rr-table-text; }
+.deals-excel-th-pct { font-weight: 700; color: $rr-table-text; }
+.deals-excel-subtotaal { background: rgba(52, 152, 219, 0.2); font-weight: 600; }
+.deals-excel-subtotaal td { padding: 0.5rem 0.75rem; background: rgba(52, 152, 219, 0.24); height: 38px; }
+.deals-excel-subtotaal td.deals-excel-subtotaal-cell-good { background: rgba(107, 207, 127, 0.45); color: #0f2e17; }
+.deals-excel-subtotaal td.deals-excel-subtotaal-cell-bad { background: rgba(229, 115, 115, 0.48); color: #3b0e0e; }
+.deals-excel-subtotaal td.deals-excel-subtotaal-cell-neutral { background: rgba(52, 152, 219, 0.24); color: #1f2937; }
+.deals-excel-succesratio { background: rgba(243, 156, 18, 0.15); }
+.deals-excel-succesratio td { padding: 0.5rem 0.75rem; background: rgba(243, 156, 18, 0.24); color: #1f2937; height: 38px; }
+.deals-excel-conversie td { padding: 0.5rem 0.75rem; background: rgba(155, 89, 182, 0.24); color: #1f2937; height: 38px; font-weight: 600; }
+
+/* Drawer */
+.deals-excel-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 50;
+  display: flex;
+  justify-content: flex-end;
+}
+.deals-excel-drawer {
+  width: min(520px, 92vw);
+  height: 100%;
+  background: $rr-bg-card-solid;
+  border-left: 1px solid $rr-border;
+  padding: 1rem;
+  overflow: auto;
+  color: $rr-text;
+}
+.deals-excel-drawer-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.deals-excel-drawer-sub { display: block; font-size: 0.85rem; color: rgba(255, 255, 255, 0.65); margin-top: 0.25rem; }
+.deals-excel-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1rem; }
+.deals-excel-detail-k { display: block; font-size: 0.75rem; color: rgba(255, 255, 255, 0.6); }
+.deals-excel-detail-v { display: block; font-size: 0.9rem; color: $rr-text; }
+.deals-excel-detail-block { margin-top: 1rem; }
+.deals-excel-timeline { list-style: none; padding: 0; margin: 0.75rem 0 0 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.deals-excel-timeline-item { padding: 0.5rem 0.6rem; border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 10px; background: rgba(255, 255, 255, 0.04); }
+.deals-excel-timeline-title { display: block; font-weight: 600; color: $rr-text; }
+.deals-excel-timeline-meta { display: block; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); margin-top: 0.15rem; }
+
+/* Overzichts-tabel (per maand) */
+.dashboard-overview { max-width: 1800px; }
+.overview-table-wrap {
+  margin-top: 1rem;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 75vh;
+  background: $rr-table-surface;
+  border: 1px solid $rr-table-border;
+  border-radius: 12px;
+  padding: 0.75rem;
+}
+.overview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.05rem;
+  min-width: 1100px;
+}
+.overview-table th,
+.overview-table td {
+  padding: 0.65rem 0.9rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  text-align: center;
+}
+.overview-table th {
+  background: #e2e8f0;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: #0f172a;
+}
+.overview-table td {
+  color: #1e293b;
+  background: #fff;
+}
+.overview-year-row td {
+  text-align: left;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: #f1f5f9;
+  padding: 0.75rem 0.9rem;
+  color: #0f172a;
+}
+.overview-year-cell {
+  font-weight: 600;
+  color: #0f172a;
+}
+.overview-cell-good {
+  background: rgba(46, 204, 113, 0.18);
+}
+.overview-cell-bad {
+  background: rgba(231, 76, 60, 0.18);
+}
+
+.overview-readonly-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* RRO / Red Rock paneel — lichte tekst op diep navy (geen donkere tekst op donkerblauw) */
+.rro-overview {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.92) 0%, rgba(2, 6, 23, 0.88) 100%);
+  border-radius: 16px;
+  padding: 1.25rem 1.35rem;
+  color: $rr-text;
+  border: 1px solid $rr-border;
+  box-shadow: 0 20px 50px rgba(2, 6, 23, 0.35);
+}
+
+.rro-brand {
+  font-size: 1.65rem;
+  letter-spacing: 0.32rem;
+  font-weight: 800;
+  margin-bottom: 0.85rem;
+  color: $rr-text;
+  text-transform: uppercase;
+}
+
+.rro-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 1.15rem;
+}
+
+.rro-tab {
+  min-width: 112px;
+  height: 42px;
+  border: 1px solid $rr-border;
+  background: rgba(51, 65, 85, 0.45);
+  color: $rr-text-muted;
+  border-radius: 999px;
+  padding: 0 1.35rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  text-transform: uppercase;
+  line-height: 40px;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.rro-tab:hover {
+  transform: translateY(-1px);
+  color: $rr-text;
+  background: rgba(71, 85, 105, 0.55);
+}
+
+.rro-tab-active {
+  background: linear-gradient(180deg, $rr-accent-soft 0%, $rr-accent 100%);
+  border: 1px solid rgba(253, 186, 116, 0.45);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(234, 88, 12, 0.28);
+}
+
+.rro-year {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+  color: $rr-text-muted;
+  font-size: 0.95rem;
+}
+
+.rro-year select {
+  height: 38px;
+  background: $rr-bg-card-solid;
+  color: $rr-text;
+  border: 1px solid $rr-border;
+  border-radius: 8px;
+  padding: 0.35rem 0.65rem;
+  min-width: 190px;
+}
+.rro-year select option {
+  background: $rr-bg-card-solid;
+  color: $rr-text;
+}
+
+.rro-table-wrap {
+  max-height: none;
+  margin-top: 0.55rem;
+  background: $rr-table-surface;
+  border: 1px solid $rr-table-border;
+  border-radius: 12px;
+  padding: 0.75rem;
+}
+
+.rro-table {
+  font-size: 0.92rem;
+  background: $rr-table-cell;
+  color: $rr-table-text;
+}
+
+.rro-table th,
+.rro-table td {
+  border: 1px solid $rr-table-border;
+}
+
+.rro-table th {
+  background: $rr-table-header;
+  color: $rr-table-text;
+}
+
+.rro-table td {
+  background: $rr-table-cell;
+  color: $rr-table-text-muted;
+}
+
+.rro-table td.overview-cell-good {
+  background: rgba(46, 204, 113, 0.28);
+  color: #0f2e17;
+}
+
+.rro-table td.overview-cell-bad {
+  background: rgba(231, 76, 60, 0.28);
+  color: #3b0e0e;
+}
+
+.rro-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  outline: none;
+}
+
+.rro-cell-input {
+  text-align: right;
+}
+
+.rro-comment {
+  max-width: 420px;
+  margin-bottom: 0.7rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28);
+}
+
+.rro-comment-dark {
+  background: #262626;
+  color: #f7f7f7;
+}
+
+.rro-comment-blue {
+  background: #1d8fe6;
+  color: #fff;
+}
+
+.rro-footnote {
+  margin: 0.8rem 0 0 0;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.9rem;
+}
+
+/* Sales activiteit */
+.sales-activity-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  align-items: center;
+  margin-bottom: 1.1rem;
+}
+
+.sales-activity-filter label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: $rr-text-muted;
+}
+
+.sales-activity-filter select {
+  min-width: min(100%, 320px);
+  max-width: 420px;
+  height: 34px;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(43, 46, 53, 0.96);
+  color: #fff;
+}
+
+.sales-activity-note {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.sales-activity-banner {
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.sales-activity-banner-warn {
+  background: rgba(234, 88, 12, 0.15);
+  border: 1px solid rgba(251, 146, 60, 0.35);
+  color: #fed7aa;
+}
+
+.sales-activity-summary {
+  display: grid;
+  grid-template-columns: minmax(200px, 240px) minmax(0, 1fr) minmax(200px, 260px);
+  gap: 1rem;
+  align-items: stretch;
+  margin-bottom: 1.25rem;
+}
+
+.sales-activity-summary-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 132px;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
+}
+
+.sales-activity-hero {
+  justify-content: center;
+  gap: 0.15rem;
+  border-color: rgba(251, 146, 60, 0.35);
+  background: linear-gradient(145deg, rgba(234, 88, 12, 0.22) 0%, rgba(15, 23, 42, 0.92) 55%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.sales-activity-hero-kicker {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: $rr-accent-soft;
+}
+
+.sales-activity-hero-value {
+  margin: 0.1rem 0 0;
+  font-size: 2.75rem;
+  font-weight: 800;
+  line-height: 1;
+  color: $rr-text;
+  font-variant-numeric: tabular-nums;
+}
+
+.sales-activity-hero-label {
+  margin: 0.35rem 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: $rr-text;
+}
+
+.sales-activity-hero-person {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: $rr-text-dim;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sales-activity-goal-panel {
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(30, 41, 59, 0.65);
+}
+
+.sales-activity-goal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sales-activity-goal-head h3 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: $rr-text;
+}
+
+.sales-activity-goal-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: $rr-text-muted;
+}
+
+.sales-activity-goal-input input {
+  width: 72px;
+  padding: 0.25rem 0.45rem;
+  min-height: 1.85rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(43, 46, 53, 0.96);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sales-activity-progress-track {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid $rr-border;
+  overflow: hidden;
+}
+
+.sales-activity-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.25s ease, background 0.25s ease;
+}
+
+.sales-activity-goal-meta {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: $rr-text-muted;
+}
+
+.sales-activity-goal-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.5rem;
+}
+
+.sales-activity-goal-status strong {
+  color: $rr-text;
+  font-size: 0.95rem;
+}
+
+.sales-activity-goal-pct {
+  color: $rr-text-dim;
+  font-size: 0.85rem;
+}
+
+.sales-activity-goal-hint {
+  color: $rr-text-dim;
+  font-size: 0.82rem;
+}
+
+.sales-activity-goal-status.good .sales-activity-goal-pct {
+  color: #86efac;
+}
+
+.sales-activity-goal-status.pending .sales-activity-goal-pct {
+  color: $rr-accent-soft;
+}
+
+.sales-activity-side-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+  min-height: 132px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.sales-activity-stat {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.15rem;
+  min-height: 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(30, 41, 59, 0.65);
+}
+
+.sales-activity-stat strong {
+  font-size: 1.45rem;
+  line-height: 1.1;
+  color: #6ee7a8;
+  font-variant-numeric: tabular-nums;
+}
+
+.sales-activity-stat span {
+  font-size: 0.72rem;
+  line-height: 1.25;
+  color: $rr-text-dim;
+}
+
+.sales-activity-stat-muted {
+  background: rgba(30, 41, 59, 0.5);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.sales-activity-stat-muted strong {
+  color: #cbd5e1;
+}
+
+.sales-activity-chart-note {
+  margin: 0 0 0.65rem;
+  font-size: 0.82rem;
+  color: $rr-text-dim;
+}
+
+@media (max-width: 1100px) {
+  .sales-activity-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+  .sales-activity-summary-card {
+    min-height: 120px;
+  }
+  .sales-activity-side-stats {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    min-height: 88px;
+  }
+}
+
+@media (max-width: 720px) {
+  .sales-activity-summary {
+    grid-template-columns: 1fr;
+  }
+  .sales-activity-side-stats {
+    flex-direction: column;
+    min-height: 132px;
+  }
+}
+
+.sales-activity-chart {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  /* Minder padding links zodat de plot meer breedte krijgt */
+  padding: 0.75rem 0.65rem 0.75rem 0.35rem;
+
+  .recharts-wrapper {
+    margin-left: -4px;
+  }
+
+  .recharts-cartesian-axis-tick-value {
+    font-size: 14px;
+    font-weight: 500;
+    fill: #e2e8f0;
+  }
+
+  .recharts-legend-item-text {
+    font-size: 14px !important;
+    color: #e2e8f0 !important;
+  }
+
+  .recharts-tooltip-label,
+  .recharts-default-tooltip {
+    font-size: 0.9rem;
+  }
+}
+
+.sales-activity-chart h3 {
+  margin: 0 0 0.65rem 0;
+  font-size: 1rem;
+  color: $rr-text;
+}
+
+.widget .data-table-wrap {
+  background: $rr-table-surface;
+  border: 1px solid $rr-table-border;
+  border-radius: 10px;
+  padding: 0.75rem;
+  margin-top: 0.35rem;
+}
+
+/* Donut */
+.widget-donut .widget-body { min-height: 200px; }
+.donut-wrap { position: relative; }
+.donut-center {
+  fill: rgba(255, 255, 255, 0.9);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* Voortgangscirkel */
+.progress-ring-wrap {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  margin: 0 auto;
+}
+.progress-ring-svg { transform: rotate(0deg); }
+.progress-ring-bg {
+  stroke: rgba(255, 255, 255, 0.12);
+}
+.progress-ring-fill {
+  stroke: $rr-accent-soft;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.4s ease;
+}
+.progress-ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+}
+.progress-ring-pct {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $rr-accent-soft;
+}
+.progress-ring-label { font-size: 0.85rem; font-weight: 600; color: $rr-text; }
+.progress-ring-sublabel { font-size: 0.75rem; color: $rr-text-dim; }
+
+/* Top deals (ranking) */
+.top-deals { display: flex; flex-direction: column; gap: 0.5rem; }
+.top-deals-empty { color: rgba(255, 255, 255, 0.5); font-size: 0.9rem; margin: 0; }
+.top-deals-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.top-deals-item:last-child { border-bottom: none; }
+.top-deals-rank {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  color: $rr-text;
+}
+.top-deals-item:nth-child(1) .top-deals-rank { background: #f0ad4e; color: #1a1a1a; }
+.top-deals-item:nth-child(2) .top-deals-rank { background: #c0c0c0; color: #1a1a1a; }
+.top-deals-item:nth-child(3) .top-deals-rank { background: #cd7f32; color: #fff; }
+.top-deals-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.1rem; }
+.top-deals-title { font-size: 0.9rem; color: $rr-text; }
+.top-deals-meta { font-size: 0.75rem; color: rgba(255, 255, 255, 0.55); }
+.top-deals-value { font-weight: 600; color: #6bcf7f; }
+
+/* Won deals table */
+.won-deals-table { font-size: 0.9rem; }
+.won-deals-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.won-deals-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.won-deals-row span { font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); }
+.won-deals-row strong { color: #6bcf7f; }
+.won-deals-list { display: flex; flex-direction: column; gap: 0.35rem; }
+.won-deals-item {
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.85rem;
+}
+.won-deals-value { font-weight: 600; color: #4a9eff; }
+.won-deals-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: $rr-text; }
+.won-deals-status { color: rgba(255, 255, 255, 0.6); font-size: 0.8rem; }
+
+/* Dashboard */
+.dashboard {
+  color: $rr-text;
+}
+
+.dashboard h2 {
+  margin-top: 0;
+  color: $rr-text;
+}
+
+.dashboard p {
+  color: $rr-text-muted;
+}
+
+.dashboard-error {
+  color: #e57373 !important;
+  word-break: break-word;
+}
+
+/* Calls dashboard (zoals screenshot) */
+.calls-page {
+  max-width: 1380px;
+  margin: 0 auto;
+}
+
+.calls-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.calls-toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+  color: $rr-text-muted;
+}
+
+.calls-toolbar select,
+.calls-toolbar input {
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid $rr-border;
+  background: $rr-bg-card-solid;
+  color: $rr-text;
+}
+
+.calls-period-pill {
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid $rr-border;
+  font-size: 0.8rem;
+  color: $rr-text-muted;
+}
+
+.calls-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.calls-kpi-card {
+  background: $rr-bg-card;
+  border: 1px solid $rr-border;
+  border-radius: 12px;
+  padding: 0.8rem 0.9rem;
+  color: $rr-text;
+}
+
+.calls-kpi-label {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 0.2rem;
+  color: $rr-text-dim;
+}
+
+.calls-kpi-card strong {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: $rr-text;
+}
+
+.calls-widget {
+  background: $rr-bg-card;
+  border: 1px solid $rr-border;
+  border-radius: 12px;
+  padding: 0.9rem;
+  margin-bottom: 1rem;
+  color: $rr-text;
+}
+
+.calls-widget h3 {
+  margin: 0 0 0.6rem 0;
+  font-size: 0.95rem;
+  color: $rr-text;
+}
+
+.calls-grid-2 {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 2fr 1.25fr;
+}
+
+.calls-owner-table-wrap {
+  overflow: auto;
+  background: $rr-table-surface;
+  border: 1px solid $rr-table-border;
+  border-radius: 10px;
+  padding: 0.5rem;
+}
+
+.calls-owner-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.calls-owner-table th,
+.calls-owner-table td {
+  padding: 0.45rem 0.55rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.calls-owner-table th {
+  background: $rr-table-header;
+  color: $rr-table-text;
+}
+
+.calls-owner-table td {
+  background: $rr-table-cell;
+  color: $rr-table-text-muted;
+}
+
+.calls-owner-table tbody tr:nth-child(even) td { background: $rr-table-surface-alt; }
+.calls-owner-table tbody tr:hover td { background: #e2e8f0; }
+
+.calls-note {
+  padding: 0.55rem 0.75rem;
+  border-radius: 10px;
+  background: rgba(234, 88, 12, 0.1);
+  border: 1px solid rgba(251, 146, 60, 0.28);
+  font-size: 0.88rem;
+  color: $rr-text-muted;
+}
+
+/* Optioneel: lichte calls-pagina — zelfde contrastregels als de rest van het donkere thema */
+.calls-page-light .dashboard-page-title {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: $rr-text-dim;
+  margin-bottom: 0.8rem;
+}
+
+.calls-page-light .calls-toolbar select,
+.calls-page-light .calls-toolbar input {
+  background: $rr-bg-card-solid;
+  border: 1px solid $rr-border;
+  color: $rr-text;
+}
+
+.calls-page-light .calls-period-pill {
+  background: $rr-bg-card-solid;
+  color: $rr-text-muted;
+  border: 1px solid $rr-border;
+}
+
+.calls-page-light .calls-kpi-card,
+.calls-page-light .calls-widget {
+  background: $rr-bg-card;
+  border: 1px solid $rr-border;
+  color: $rr-text;
+}
+
+.calls-page-light .calls-kpi-label {
+  color: $rr-text-dim;
+}
+
+.calls-page-light .calls-kpi-card strong {
+  color: $rr-text;
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.calls-page-light .calls-widget h3 {
+  color: $rr-text;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.calls-page-light .calls-owner-table th,
+.calls-page-light .calls-owner-table td {
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.calls-page-light .calls-owner-table th {
+  background: $rr-table-header;
+  color: $rr-table-text;
+}
+
+.calls-page-light .calls-owner-table td {
+  background: $rr-table-cell;
+  color: $rr-table-text-muted;
+}
+
+.calls-page-light .calls-note {
+  background: rgba(234, 88, 12, 0.12);
+  border-color: rgba(251, 146, 60, 0.35);
+  color: $rr-text-muted;
+}
+/* KPI-kaarten */
+.kpi-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+.kpi-card {
+  background: $rr-bg-card;
+  border-radius: 14px;
+  padding: 1.25rem;
+  text-align: center;
+  border: 1px solid $rr-border;
+  color: $rr-text;
+}
+.kpi-value {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #7dd3fc;
+}
+.kpi-label {
+  font-size: 0.85rem;
+  color: $rr-text-dim;
+}
+
+/* Grafiek */
+.dashboard-chart {
+  background: $rr-bg-card;
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid $rr-border;
+  color: $rr-text;
+}
+.dashboard-chart h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: $rr-text;
+}
+
+/* Tabellen */
+.dashboard-tables {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+.data-table-wrap {
+  background: $rr-table-surface;
+  border-radius: 14px;
+  padding: 1rem;
+  border: 1px solid $rr-table-border;
+  color: $rr-table-text;
+}
+.data-table-wrap h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: $rr-table-text;
+}
+.data-table-scroll {
+  overflow-x: auto;
+  background: $rr-table-cell;
+  border-radius: 8px;
+  border: 1px solid $rr-table-border;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.data-table th,
+.data-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+.data-table th {
+  font-weight: 600;
+  color: $rr-table-text;
+  background: $rr-table-header;
+}
+.data-table td {
+  color: $rr-table-text-muted;
+  background: $rr-table-cell;
+}
+.data-table tbody tr:nth-child(even) td { background: $rr-table-surface-alt; }
+.data-table tbody tr:hover td {
+  background: #e2e8f0;
+}
+
+/* Responsive: minder kolommen op kleine schermen */
+@media (max-width: 1000px) {
+  .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+  .kpi-cards { grid-template-columns: repeat(2, 1fr); }
+  .calls-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .calls-grid-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .kpi-cards { grid-template-columns: 1fr; }
+  .calls-kpis { grid-template-columns: 1fr; }
+}
+
