@@ -137,13 +137,6 @@ export function Overview() {
 
   // Vul de "Jaar x Maand" tabel (read-only); targets uit localStorage.
   useEffect(() => {
-    const base = (import.meta.env.VITE_API_URL as string) || ''
-    if (!base) {
-      setError('VITE_API_URL niet gezet.')
-      setFetchHint(null)
-      return
-    }
-
     const seq = ++overviewLoadSeq.current
 
     // Al eerder geladen voor dit jaar (bijv. terug vanaf Deals en offertes).
@@ -191,8 +184,10 @@ export function Overview() {
           Object.keys(overviewYearDataCache).forEach((k) => delete overviewYearDataCache[Number(k)])
           setError(null)
           setData({})
+          const authUrl = `${window.location.origin}/auth/login`
+          const infoUrl = `${window.location.origin}/auth/info`
           setFetchHint(
-            'Live pipeline-cijfers laden na inloggen bij Teamleader: open http://localhost:5055/auth/login (redirect moet in Marketplace staan als http://localhost:5055/api/teamleader/auth/callback). Controle: http://localhost:5055/auth/info',
+            `Live pipeline-cijfers laden na inloggen bij Teamleader: open ${authUrl}. Controle: ${infoUrl}`,
           )
         } else {
           setError(msg)

@@ -54,12 +54,6 @@ export function Dashboard() {
   })()
 
   useEffect(() => {
-    const base = (import.meta.env.VITE_API_URL as string) || ''
-    if (!base) {
-      setError('VITE_API_URL niet gezet. Maak een .env met VITE_API_URL=http://localhost:5055')
-      setLoading(false)
-      return
-    }
     Promise.all([
       apiGet<ApiListResponse<CompanyRow>>('/companies'),
       apiGet<ApiListResponse<ContactRow>>('/contacts'),
@@ -138,9 +132,6 @@ export function Dashboard() {
   }
 
   useEffect(() => {
-    const base = (import.meta.env.VITE_API_URL as string) || ''
-    if (!base) return
-
     const key = cacheKeyFor(period)
     if (period !== 'all' && isManualPipelineMonth(period)) {
       setDeals([])

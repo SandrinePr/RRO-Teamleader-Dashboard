@@ -2,7 +2,7 @@
  * API helpers + Teamleader types + fase-mapping.
  */
 
-const BASE = (import.meta.env.VITE_API_URL as string) || ''
+const BASE = ''
 const DEBUG_FETCH =
   typeof window !== 'undefined' &&
   (new URLSearchParams(window.location.search).get('debugDeals') === '1' ||
