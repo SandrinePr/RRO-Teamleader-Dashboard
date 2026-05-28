@@ -144,6 +144,7 @@ app.UseCors();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
+app.MapGet("/healthz", () => Results.Ok(new { ok = true }));
 app.MapGet("/api", () => "Teamleader API. Endpoints: /users, /deals, /deals-with-companies, /contacts, /companies, /tasks, /calls. OAuth: /auth/login. MS Graph (optioneel): /ms365/users, /ms365/emails, /ms365/emails/daily");
 
 string TeamleaderAuthorizeUrl() =>
