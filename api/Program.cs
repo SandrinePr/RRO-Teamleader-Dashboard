@@ -13,8 +13,11 @@ using Microsoft.AspNetCore.Http.Json;
 const int LocalDevApiPort = 5055;
 const string TeamleaderOAuthBase = "https://focus.teamleader.eu";
 
-if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PORT")))
+var railwayPort = Environment.GetEnvironmentVariable("PORT");
+if (string.IsNullOrWhiteSpace(railwayPort))
   Environment.SetEnvironmentVariable("ASPNETCORE_URLS", $"http://localhost:{LocalDevApiPort}");
+else
+  Environment.SetEnvironmentVariable("ASPNETCORE_URLS", $"http://0.0.0.0:{railwayPort}");
 
 static string FirstNonEmptyEarly(params string?[] values)
 {
