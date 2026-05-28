@@ -8,6 +8,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Globalization;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Extensions.FileProviders;
 
 // Lokale API-poort (gelijk houden met launchSettings + .env VITE_API_URL + Teamleader redirect-URI).
 const int LocalDevApiPort = 5055;
@@ -141,8 +142,32 @@ builder.Services.AddHttpClient();
 
 var app = builder.Build();
 app.UseCors();
-app.UseDefaultFiles();
-app.UseStaticFiles();
+var frontendRootCandidates = new[]
+{
+  app.Environment.WebRootPath,
+  Path.Combine(app.Environment.ContentRootPath, "wwwroot"),
+  Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "wwwroot")),
+  Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "wwwroot")),
+  Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "wwwroot")),
+  Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "dist")),
+  Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "dist")),
+  Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "dist")),
+};
+var frontendRootPath = frontendRootCandidates.FirstOrDefault(path =>
+  !string.IsNullOrWhiteSpace(path) &&
+  Directory.Exists(path) &&
+  File.Exists(Path.Combine(path, "index.html")));
+
+if (!string.IsNullOrWhiteSpace(frontendRootPath))
+{
+  var frontendFiles = new PhysicalFileProvider(frontendRootPath);
+  app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = frontendFiles });
+  app.UseStaticFiles(new StaticFileOptions { FileProvider = frontendFiles });
+}
+else
+{
+  Console.WriteLine("[startup] No frontend root with index.html found; /api and /healthz remain available.");
+}
 
 app.MapGet("/healthz", () => Results.Ok(new { ok = true }));
 app.MapGet("/api", () => "Teamleader API. Endpoints: /users, /deals, /deals-with-companies, /contacts, /companies, /tasks, /calls. OAuth: /auth/login. MS Graph (optioneel): /ms365/users, /ms365/emails, /ms365/emails/daily");
@@ -1545,8 +1570,15 @@ app.MapFallback(async ctx =>
     return;
   }
 
+  if (string.IsNullOrWhiteSpace(frontendRootPath))
+  {
+    ctx.Response.StatusCode = 503;
+    await ctx.Response.WriteAsync("Frontend files missing");
+    return;
+  }
+
   ctx.Response.ContentType = "text/html; charset=utf-8";
-  await ctx.Response.SendFileAsync(Path.Combine(app.Environment.WebRootPath, "index.html"));
+  await ctx.Response.SendFileAsync(Path.Combine(frontendRootPath, "index.html"));
 });
 
 app.Run();
