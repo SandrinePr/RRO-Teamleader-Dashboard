@@ -9,4 +9,16 @@
     <UserSecretsId>TeamleaderDashboard-Api-9f2c1b8e-4d7a-4c1e-9b3a-localdev</UserSecretsId>
   </PropertyGroup>
 
+  <Target Name="BuildFrontendForPublish" BeforeTargets="ComputeFilesToPublish">
+    <Exec Command="npm ci" WorkingDirectory="$(MSBuildProjectDirectory)\.." />
+    <Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)\.." />
+  </Target>
+
+  <ItemGroup>
+    <Content Include="..\dist\**\*">
+      <Link>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

@@ -32,7 +32,7 @@ var redirectUri = FirstNonEmptyEarly(
   $"{apiPublicUrl}/api/teamleader/auth/callback");
 var frontendUri = FirstNonEmptyEarly(
   Environment.GetEnvironmentVariable("FRONTEND_ORIGIN"),
-  "http://localhost:5173");
+  apiPublicUrl);
 
 string? _accessToken = null;
 string? _refreshToken = null;
@@ -138,8 +138,10 @@ builder.Services.AddHttpClient();
 
 var app = builder.Build();
 app.UseCors();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
-app.MapGet("/", () => "Teamleader API. Endpoints: /users, /deals, /deals-with-companies, /contacts, /companies, /tasks, /calls. OAuth: /auth/login. MS Graph (optioneel): /ms365/users, /ms365/emails, /ms365/emails/daily");
+app.MapGet("/api", () => "Teamleader API. Endpoints: /users, /deals, /deals-with-companies, /contacts, /companies, /tasks, /calls. OAuth: /auth/login. MS Graph (optioneel): /ms365/users, /ms365/emails, /ms365/emails/daily");
 
 string TeamleaderAuthorizeUrl() =>
   $"{TeamleaderOAuthBase}/oauth2/authorize?client_id={Uri.EscapeDataString(clientId)}&response_type=code&redirect_uri={Uri.EscapeDataString(redirectUri)}";
@@ -1518,6 +1520,29 @@ app.MapGet("/ms365/emails/daily", async (HttpContext ctx, IHttpClientFactory f) 
 
   var days = byDay.OrderBy(kv => kv.Key).Select(kv => new { date = kv.Key, count = kv.Value }).ToArray();
   return Results.Json(new { days });
+});
+
+app.MapFallback(async ctx =>
+{
+  if (ctx.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase) ||
+      ctx.Request.Path.StartsWithSegments("/auth", StringComparison.OrdinalIgnoreCase) ||
+      ctx.Request.Path.StartsWithSegments("/ms365", StringComparison.OrdinalIgnoreCase) ||
+      ctx.Request.Path.StartsWithSegments("/users", StringComparison.OrdinalIgnoreCase) ||
+      ctx.Request.Path.StartsWithSegments("/deals", StringComparison.OrdinalIgnoreCase) ||
+      ctx.Request.Path.StartsWithSegments("/deals-with-companies", StringComparison.OrdinalIgnoreCase) ||
+      ctx.Request.Path.StartsWithSegments("/contacts", StringComparison.OrdinalIgnoreCase) ||
+      ctx.Request.Path.StartsWithSegments("/companies", StringComparison.OrdinalIgnoreCase) ||
+      ctx.Request.Path.StartsWithSegments("/tasks", StringComparison.OrdinalIgnoreCase) ||
+      ctx.Request.Path.StartsWithSegments("/calls", StringComparison.OrdinalIgnoreCase) ||
+      ctx.Request.Path.StartsWithSegments("/integrations", StringComparison.OrdinalIgnoreCase))
+  {
+    ctx.Response.StatusCode = 404;
+    await ctx.Response.WriteAsync("Not Found");
+    return;
+  }
+
+  ctx.Response.ContentType = "text/html; charset=utf-8";
+  await ctx.Response.SendFileAsync(Path.Combine(app.Environment.WebRootPath, "index.html"));
 });
 
 app.Run();
