@@ -3,7 +3,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { Outlet } from 'react-router-dom'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
-import type { DealRow, ContactRow, CompanyRow, TaskRow, UserRow } from './api'
+import type { DealRow, ContactRow, CompanyRow, UserRow } from './api'
 import { PIPELINE_STAGES, DEALS_OFFERTES_STAGES, getDealPipelineStage } from './api'
 import { buildManualDealsByStage } from './manualPipeline'
 import { stageTargetsByIdForYear } from './pipelineTargets'
@@ -585,15 +585,6 @@ export function DealsOffertesExcel({
     const inferredMonthsByStage = inferStageMonthsByDeal(deal)
     for (const [st, inferredMonth] of inferredMonthsByStage.entries()) {
       if (inferredMonth === monthKey) out.add(st)
-    }
-    return out
-  }
-
-  function stagesReachedBeforeMonth(deal: DealRow, monthKey: string): Set<string> {
-    const out = new Set<string>()
-    const inferredMonthsByStage = inferStageMonthsByDeal(deal)
-    for (const [st, inferredMonth] of inferredMonthsByStage.entries()) {
-      if (inferredMonth < monthKey) out.add(st)
     }
     return out
   }
