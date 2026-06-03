@@ -2,7 +2,7 @@
  * Vaste pipeline-data t/m mei 2026. Vanaf juni 2026: Teamleader API.
  *
  * Bronnen:
- * - 2024: alleen nov/dec (TOTAAL-sheet)
+ * - 2024: okt (Closing), nov/dec (TOTAAL-sheet)
  * - 2025 jan: TOTAAL-sheet; feb–jun: Closing-sheet
  * - 2026 jan–mei: Discovery-sheet (jan-26 t/m mei-26)
  */
@@ -54,9 +54,9 @@ export function is2024Month(monthKey: string): boolean {
   return monthKey.startsWith('2024-')
 }
 
-/** 2024: alleen november en december (TOTAAL-sheet). */
+/** 2024: oktober (Closing), november en december (TOTAAL-sheet). */
 export function is2024PipelineDataMonth(monthKey: string): boolean {
-  return monthKey === '2024-11' || monthKey === '2024-12'
+  return monthKey === '2024-10' || monthKey === '2024-11' || monthKey === '2024-12'
 }
 
 /** Alleen maanden zonder handmatige offerte-lijsten (geen 2024 meer forceren op 0). */
@@ -81,6 +81,13 @@ export function manualDealRows(
 
 /** Deals & offertes: klantnamen per kolom en maand. */
 export const manualDealsByMonth: Record<string, ManualDealsMonth> = {
+  /** Closing-sheet: oktober 2024 */
+  '2024-10': {
+    discovery_voorgesteld: ['Solulu'],
+    discovery_gepland: ['Solulu'],
+    discovery_plaatsgevonden: ['Solulu'],
+    offerte_verzonden: ['Solulu'],
+  },
   /** TOTAAL-sheet: november 2024 */
   '2024-11': {
     discovery_voorgesteld: [
