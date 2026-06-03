@@ -37,7 +37,7 @@ type YearData = Record<string, MonthMap | null>
 const overviewYearDataCache: Record<number, YearData> = {}
 const overviewCacheVersion: Record<number, number> = {}
 /** Bump na wijziging handmatige pipeline-data (invalidates browser-sessie-cache). */
-const OVERVIEW_DATA_VERSION = 3
+const OVERVIEW_DATA_VERSION = 4
 
 function emptyMonthMap(): MonthMap {
   return {

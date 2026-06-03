@@ -276,14 +276,16 @@ export const manualDealsByMonth: Record<string, ManualDealsMonth> = {
     discovery_gepland: ['Atlantika', 'Hout & Living', 'Oogenlust'],
     discovery_plaatsgevonden: ['Atlantika'],
   },
-  /** Discovery-sheet: mei-26 (ingepland leeg in Excel) */
+  /** Discovery-sheet: mei-26 */
   '2026-05': {
     discovery_voorgesteld: [
       'Bespoke Design (MONIQUE)', 'Lagoon', 'Eric Kant', 'Zolderidee', 'Technohome',
     ],
-    discovery_gepland: [],
-    discovery_plaatsgevonden: ['Hout & Living', 'Oogenlust'],
-    offerte_verzonden: ['Atlantika', 'Oogenlust'],
+    discovery_gepland: [
+      'Bespoke Design (MONIQUE)', 'Lagoon', 'Eric Kant', 'Zolderidee', 'Technohome',
+    ],
+    discovery_plaatsgevonden: ['Hout & Living', 'Ooggelust'],
+    offerte_verzonden: ['Altanka', 'Ooggelust'],
     offerte_geweigerd: ['Jasper Verhey'],
   },
 }
