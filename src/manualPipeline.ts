@@ -2,7 +2,7 @@
  * Vaste pipeline-data t/m mei 2026. Vanaf juni 2026: Teamleader API.
  *
  * Bronnen:
- * - 2024: alleen nov/dec (discovery) + okt/nov/dec (offertes verzonden)
+ * - 2024: alleen nov/dec (TOTAAL-sheet)
  * - 2025 jan: TOTAAL-sheet; feb–jun: Closing-sheet
  * - 2026 jan–mei: Discovery-sheet (jan-26 t/m mei-26)
  */
@@ -94,10 +94,7 @@ export const manualDealsByMonth: Record<string, ManualDealsMonth> = {
   '2024-08': {},
   '2024-09': {},
 
-  /** Alleen 1 offerte verzonden (geen discovery-tracking die maand). */
-  '2024-10': {
-    offerte_verzonden: ['Solulu'],
-  },
+  '2024-10': {},
 
   /** TOTAAL-sheet: november 2024 */
   '2024-11': {
@@ -297,13 +294,13 @@ export const manualDealsByMonth: Record<string, ManualDealsMonth> = {
   /** Discovery-sheet: mei-26 */
   '2026-05': {
     discovery_voorgesteld: [
-      'Bespoke Design (MONIQUE)', 'Lagon', 'Eric Kant', 'Zolderidee', 'Technohome',
+      'Bespoke Design (MONIQUE)', 'Lagoon', 'Eric Kant', 'Zolderidee', 'Technohome',
     ],
     discovery_gepland: [
-      'Bespoke Design (MONIQUE)', 'Lagon', 'Eric Kant', 'Zolderidee', 'Technohome',
+      'Bespoke Design (MONIQUE)', 'Lagoon', 'Eric Kant', 'Zolderidee', 'Technohome',
     ],
-    discovery_plaatsgevonden: ['Hout & Living', 'Ongeklust'],
-    offerte_verzonden: ['Altanka', 'Ongeklust'],
+    discovery_plaatsgevonden: ['Hout & Living', 'Oogenlust'],
+    offerte_verzonden: ['Atlantika', 'Oogenlust'],
     offerte_geweigerd: ['Jasper Verhey'],
   },
 }
