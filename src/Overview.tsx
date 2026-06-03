@@ -37,7 +37,7 @@ type YearData = Record<string, MonthMap | null>
 const overviewYearDataCache: Record<number, YearData> = {}
 const overviewCacheVersion: Record<number, number> = {}
 /** Bump na wijziging handmatige pipeline-data (invalidates browser-sessie-cache). */
-const OVERVIEW_DATA_VERSION = 5
+const OVERVIEW_DATA_VERSION = 6
 
 function emptyMonthMap(): MonthMap {
   return {
@@ -120,10 +120,16 @@ export function Overview() {
   /** Oplopend bij elke load; voorkomt dat Strict Mode cleanup de maandlus afbreekt. */
   const overviewLoadSeq = useRef(0)
 
-  const monthCount = year === 2026 ? now.getMonth() + 1 : 12
+  /** 2024: alleen nov/dec in de tabel; andere jaren alle maanden t/m huidige maand (2026). */
+  const visibleMonthIndices = useMemo(() => {
+    if (year === 2024) return [10, 11]
+    const count = year === 2026 ? now.getMonth() + 1 : 12
+    return Array.from({ length: count }, (_, i) => i)
+  }, [year, now])
 
   const rows = useMemo(() => {
-    return MONTHS.slice(0, monthCount).map((maand, i) => {
+    return visibleMonthIndices.map((i) => {
+      const maand = MONTHS[i]!
       const key = `${year}-${String(i + 1).padStart(2, '0')}`
       return {
         key,
@@ -132,7 +138,7 @@ export function Overview() {
         values: data[key] ?? null,
       }
     })
-  }, [data, year, monthCount])
+  }, [data, year, visibleMonthIndices])
 
   const totals = useMemo(() => {
     const sum = emptyMonthMap()
