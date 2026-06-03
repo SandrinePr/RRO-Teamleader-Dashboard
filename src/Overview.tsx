@@ -4,9 +4,9 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { type DealRow, getDealPipelineStage } from './api'
+import type { DealRow } from './api'
+import { overviewMonthMapFromDeals } from './pipelineMonthOverview'
 import {
-  dealTouchesMonth,
   fetchAllPipelineDeals,
   pipelineSession,
   clearPipelineSession,
@@ -37,7 +37,7 @@ type YearData = Record<string, MonthMap | null>
 const overviewYearDataCache: Record<number, YearData> = {}
 const overviewCacheVersion: Record<number, number> = {}
 /** Bump na wijziging handmatige pipeline-data (invalidates browser-sessie-cache). */
-const OVERVIEW_DATA_VERSION = 7
+const OVERVIEW_DATA_VERSION = 8
 
 function emptyMonthMap(): MonthMap {
   return {
@@ -71,35 +71,9 @@ function buildYearOverviewData(allDeals: DealRow[], year: number, now: Date): Ye
       out[ym] = null
       continue
     }
-    const monthDeals = allDeals.filter((d) => dealTouchesMonth(d, ym))
-    out[ym] = aggregateMonthCounts(monthDeals)
+    out[ym] = overviewMonthMapFromDeals(allDeals, ym)
   }
   return out
-}
-
-function aggregateMonthCounts(deals: DealRow[]): MonthMap {
-  const mm = emptyMonthMap()
-  const stageOrderIndex: Record<string, number> = {
-    lead_gekwalificeerd: 0,
-    discovery_voorgesteld: 1,
-    discovery_gepland: 2,
-    discovery_plaatsgevonden: 3,
-    offerte_verzonden: 4,
-    offerte_aanvaard: 5,
-    offerte_geweigerd: 6,
-  }
-  for (const deal of deals) {
-    const stage = getDealPipelineStage(deal)
-    if (!stage) continue
-    const curIdx = stageOrderIndex[stage]
-    if (curIdx == null) continue
-    if (curIdx >= 1) mm['Discovery call voorgesteld'] += 1
-    if (curIdx >= 2) mm['Discovery call ingepland'] += 1
-    if (curIdx >= 3) mm['Discovery call plaatsgevonden'] += 1
-    if (curIdx >= 4) mm['Offerte verzonden'] += 1
-    if (stage === 'offerte_aanvaard') mm['Offerte geaccepteerd'] += 1
-  }
-  return mm
 }
 
 export function Overview() {
