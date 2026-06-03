@@ -279,13 +279,15 @@ export const manualDealsByMonth: Record<string, ManualDealsMonth> = {
   /** Discovery-sheet: mei-26 */
   '2026-05': {
     discovery_voorgesteld: [
-      'Bespoke Design (MONIQUE)', 'Lagoon', 'Eric Kant', 'Zolderidee', 'Technohome',
+      'Bespoke Design (MONIQUE)', 'Lagoo', 'Eric Kant', 'Zolderidee', 'Technohome',
     ],
     discovery_gepland: [
-      'Bespoke Design (MONIQUE)', 'Lagoon', 'Eric Kant', 'Zolderidee', 'Technohome',
+      'Bespoke Design (MONIQUE)', 'Lagoo', 'Eric Kant', 'Zolderidee', 'Technohome',
     ],
-    discovery_plaatsgevonden: ['Hout & Living', 'Ooggelust'],
-    offerte_verzonden: ['Altanka', 'Ooggelust'],
+    discovery_plaatsgevonden: [
+      'Hout & Living', 'Oogenlust', 'Bespoke Design', 'Zolderidee',
+    ],
+    offerte_verzonden: ['Altanka', 'Oogenlust'],
     offerte_geweigerd: ['Jasper Verhey'],
   },
 }
