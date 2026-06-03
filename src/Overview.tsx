@@ -11,7 +11,11 @@ import {
   pipelineSession,
   clearPipelineSession,
 } from './pipelineSession'
-import { getManualOverviewMonth, isManualPipelineMonth } from './manualPipeline'
+import {
+  getManualOverviewMonth,
+  is2024PipelineDataMonth,
+  isManualPipelineMonth,
+} from './manualPipeline'
 import {
   PIPELINE_TARGET_STAGES,
   type PipelineTargetStage,
@@ -47,6 +51,10 @@ function buildYearOverviewData(allDeals: DealRow[], year: number, now: Date): Ye
   const out: YearData = {}
   for (let m = 1; m <= maxM; m++) {
     const ym = `${year}-${String(m).padStart(2, '0')}`
+    if (year === 2024) {
+      out[ym] = is2024PipelineDataMonth(ym) ? getManualOverviewMonth(ym) : null
+      continue
+    }
     const manual = getManualOverviewMonth(ym)
     if (manual) {
       out[ym] = manual

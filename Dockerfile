@@ -13,7 +13,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS backend-publish
 WORKDIR /src
 
 COPY api ./api
-COPY --from=frontend-build /src/dist ./dist
+COPY --from=frontend-build /src/dist ./api/wwwroot
 
 RUN dotnet publish ./api/TeamleaderDashboard.Api.csproj -c Release -o /app/publish
 
