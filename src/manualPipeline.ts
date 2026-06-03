@@ -1,12 +1,10 @@
 /**
  * Vaste pipeline-data t/m mei 2026. Vanaf juni 2026: Teamleader API.
  *
- * Bronnen (rode raster in screenshots):
- * - 2024 jul–dec: Discovery/Closing-sheet (juli–december 2024)
- * - 2024 okt + nov/dec + 2025 jan: TOTAAL-sheet (Closing-kolommen)
- * - 2025 feb–jun: Closing-sheet (februari–juni)
+ * Bronnen:
+ * - 2024: alleen nov/dec (discovery) + okt/nov/dec (offertes verzonden)
+ * - 2025 jan: TOTAAL-sheet; feb–jun: Closing-sheet
  * - 2026 jan–mei: Discovery-sheet (jan-26 t/m mei-26)
- * - 2024: geen offertes in de app (wel discovery/closing)
  */
 
 import type { DealRow } from './api'
@@ -64,8 +62,9 @@ export function is2024Month(monthKey: string): boolean {
   return monthKey.startsWith('2024-')
 }
 
-export function offerteStagesEmptyForMonth(monthKey: string): boolean {
-  return is2024Month(monthKey)
+/** Alleen maanden zonder handmatige offerte-lijsten (geen 2024 meer forceren op 0). */
+export function offerteStagesEmptyForMonth(_monthKey: string): boolean {
+  return false
 }
 
 export function manualDealRows(
@@ -91,29 +90,16 @@ export const manualDealsByMonth: Record<string, ManualDealsMonth> = {
   '2024-04': {},
   '2024-05': {},
   '2024-06': {},
+  '2024-07': {},
+  '2024-08': {},
+  '2024-09': {},
 
-  '2024-07': {
-    discovery_voorgesteld: ['Chic Sense'],
-    discovery_gepland: [],
-    discovery_plaatsgevonden: ['Baas Architecten'],
-  },
-  '2024-08': {
-    discovery_voorgesteld: [],
-    discovery_gepland: ['Coenen Concept'],
-    discovery_plaatsgevonden: [],
-  },
-  '2024-09': {
-    discovery_voorgesteld: ['Best in Light', 'DG Vloertechniek'],
-    discovery_gepland: ['Best in Light', 'DG Vloertechniek'],
-    discovery_plaatsgevonden: ['Best in Light', 'Coenen Concept', 'DG Vloertechniek'],
-  },
+  /** Alleen 1 offerte verzonden (geen discovery-tracking die maand). */
   '2024-10': {
-    discovery_voorgesteld: ['Solulu'],
-    discovery_gepland: ['Solulu'],
-    discovery_plaatsgevonden: ['Solulu'],
+    offerte_verzonden: ['Solulu'],
   },
 
-  /** TOTAAL-sheet: november & december 2024 */
+  /** TOTAAL-sheet: november 2024 */
   '2024-11': {
     discovery_voorgesteld: [
       '4x6 Sofa', 'Kytsch', 'BER Bouw En Renovatie B.V.', 'WAAT', 'Van Tafel',
@@ -121,7 +107,9 @@ export const manualDealsByMonth: Record<string, ManualDealsMonth> = {
     ],
     discovery_gepland: ['4x6 Sofa', 'Kytsch', 'BER Bouw En Renovatie B.V.', 'WAAT', 'Van Tafel'],
     discovery_plaatsgevonden: ['4x6 Sofa', 'Kytsch', 'BER Bouw En Renovatie B.V.', 'Van Tafel'],
+    offerte_verzonden: ['4x6 Sofa', 'Kytsch', 'BER Bouw En Renovatie B.V.', 'Van Tafel'],
   },
+  /** TOTAAL-sheet: december 2024 */
   '2024-12': {
     discovery_voorgesteld: [
       'Rep Ringel Art', 'Brand&Young', 'RBMB NL', 'Rietpanel', 'Stepharts', 'Coenen concept',
@@ -134,6 +122,9 @@ export const manualDealsByMonth: Record<string, ManualDealsMonth> = {
     ],
     discovery_plaatsgevonden: [
       'Brand&Young', 'RBMB NL', 'Stepharts', 'Coenen concept', 'Talenti Outdoor', 'Jeroen Overmars',
+    ],
+    offerte_verzonden: [
+      'Brand&Young', 'RBMB NL', 'Stepharts', 'Talenti Outdoor', 'Jeroen Overmars',
     ],
   },
 
@@ -303,11 +294,16 @@ export const manualDealsByMonth: Record<string, ManualDealsMonth> = {
     discovery_gepland: ['Atlantika', 'Hout & Living', 'Oogenlust'],
     discovery_plaatsgevonden: ['Atlantika'],
   },
+  /** Discovery-sheet: mei-26 */
   '2026-05': {
-    discovery_voorgesteld: ['Bespoke Design'],
-    discovery_gepland: [],
-    discovery_plaatsgevonden: ['Hout & Living', 'Oogenlust'],
-    offerte_verzonden: ['Atlantika', 'Oogenlust'],
+    discovery_voorgesteld: [
+      'Bespoke Design (MONIQUE)', 'Lagon', 'Eric Kant', 'Zolderidee', 'Technohome',
+    ],
+    discovery_gepland: [
+      'Bespoke Design (MONIQUE)', 'Lagon', 'Eric Kant', 'Zolderidee', 'Technohome',
+    ],
+    discovery_plaatsgevonden: ['Hout & Living', 'Ongeklust'],
+    offerte_verzonden: ['Altanka', 'Ongeklust'],
     offerte_geweigerd: ['Jasper Verhey'],
   },
 }
