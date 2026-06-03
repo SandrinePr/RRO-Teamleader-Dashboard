@@ -36,14 +36,6 @@ const OFFERTE_STAGES: ManualDealsStageId[] = [
   'offerte_geweigerd',
 ]
 
-const EMPTY_OVERVIEW: ManualOverviewMonth = {
-  'Discovery call voorgesteld': 0,
-  'Discovery call ingepland': 0,
-  'Discovery call plaatsgevonden': 0,
-  'Offerte verzonden': 0,
-  'Offerte geaccepteerd': 0,
-}
-
 function overviewFromDeals(m: ManualDealsMonth): ManualOverviewMonth {
   return {
     'Discovery call voorgesteld': m.discovery_voorgesteld?.length ?? 0,
@@ -60,6 +52,11 @@ export function isManualPipelineMonth(monthKey: string): boolean {
 
 export function is2024Month(monthKey: string): boolean {
   return monthKey.startsWith('2024-')
+}
+
+/** 2024: alleen november en december (TOTAAL-sheet). */
+export function is2024PipelineDataMonth(monthKey: string): boolean {
+  return monthKey === '2024-11' || monthKey === '2024-12'
 }
 
 /** Alleen maanden zonder handmatige offerte-lijsten (geen 2024 meer forceren op 0). */
@@ -84,18 +81,6 @@ export function manualDealRows(
 
 /** Deals & offertes: klantnamen per kolom en maand. */
 export const manualDealsByMonth: Record<string, ManualDealsMonth> = {
-  '2024-01': {},
-  '2024-02': {},
-  '2024-03': {},
-  '2024-04': {},
-  '2024-05': {},
-  '2024-06': {},
-  '2024-07': {},
-  '2024-08': {},
-  '2024-09': {},
-
-  '2024-10': {},
-
   /** TOTAAL-sheet: november 2024 */
   '2024-11': {
     discovery_voorgesteld: [
@@ -291,14 +276,12 @@ export const manualDealsByMonth: Record<string, ManualDealsMonth> = {
     discovery_gepland: ['Atlantika', 'Hout & Living', 'Oogenlust'],
     discovery_plaatsgevonden: ['Atlantika'],
   },
-  /** Discovery-sheet: mei-26 */
+  /** Discovery-sheet: mei-26 (ingepland leeg in Excel) */
   '2026-05': {
     discovery_voorgesteld: [
       'Bespoke Design (MONIQUE)', 'Lagoon', 'Eric Kant', 'Zolderidee', 'Technohome',
     ],
-    discovery_gepland: [
-      'Bespoke Design (MONIQUE)', 'Lagoon', 'Eric Kant', 'Zolderidee', 'Technohome',
-    ],
+    discovery_gepland: [],
     discovery_plaatsgevonden: ['Hout & Living', 'Oogenlust'],
     offerte_verzonden: ['Atlantika', 'Oogenlust'],
     offerte_geweigerd: ['Jasper Verhey'],
@@ -325,15 +308,18 @@ export function getManualDealsMonth(monthKey: string): ManualDealsMonth | null {
 }
 
 export function getManualOverviewMonth(monthKey: string): ManualOverviewMonth | null {
+  if (isManualPipelineMonth(monthKey) && is2024Month(monthKey) && !is2024PipelineDataMonth(monthKey)) {
+    return null
+  }
   if (manualOverviewByMonth[monthKey]) return manualOverviewByMonth[monthKey]
   if (monthKey in manualDealsByMonth && isManualPipelineMonth(monthKey)) {
     return overviewFromDeals(getManualDealsMonth(monthKey) ?? {})
   }
-  if (isManualPipelineMonth(monthKey) && is2024Month(monthKey)) return EMPTY_OVERVIEW
   return null
 }
 
 export function hasManualDealsData(monthKey: string): boolean {
+  if (is2024Month(monthKey) && !is2024PipelineDataMonth(monthKey)) return false
   const m = getManualDealsMonth(monthKey)
   if (!m) return monthKey in manualDealsByMonth
   return Object.values(m).some((arr) => arr && arr.length > 0)
@@ -349,7 +335,18 @@ const ALL_MANUAL_DEAL_STAGES: ManualDealsStageId[] = [
   'offerte_geweigerd',
 ]
 
+function emptyManualDealsByStage(): Record<ManualDealsStageId, DealRow[]> {
+  const out = {} as Record<ManualDealsStageId, DealRow[]>
+  for (const stageId of ALL_MANUAL_DEAL_STAGES) {
+    out[stageId] = []
+  }
+  return out
+}
+
 export function buildManualDealsByStage(monthKey: string): Record<ManualDealsStageId, DealRow[]> | null {
+  if (isManualPipelineMonth(monthKey) && is2024Month(monthKey) && !is2024PipelineDataMonth(monthKey)) {
+    return emptyManualDealsByStage()
+  }
   const month = getManualDealsMonth(monthKey)
   if (monthKey in manualDealsByMonth) {
     const out = {} as Record<ManualDealsStageId, DealRow[]>

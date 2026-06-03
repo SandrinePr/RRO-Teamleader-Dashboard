@@ -26,7 +26,8 @@ const MONTHS = ['Januari', 'Februari', 'Maart', 'April', 'Mei', 'Juni', 'Juli', 
 const STAGES = PIPELINE_TARGET_STAGES
 type StageName = PipelineTargetStage
 type MonthMap = Record<StageName, number>
-type YearData = Record<string, MonthMap>
+/** `null` = geen data (bijv. 2024 jan–okt). */
+type YearData = Record<string, MonthMap | null>
 
 /** Alleen overzichts-tabel per jaar (blijft bij tab-wissel). */
 const overviewYearDataCache: Record<number, YearData> = {}
@@ -52,7 +53,7 @@ function buildYearOverviewData(allDeals: DealRow[], year: number, now: Date): Ye
       continue
     }
     if (isManualPipelineMonth(ym)) {
-      out[ym] = getManualOverviewMonth(ym) ?? emptyMonthMap()
+      out[ym] = null
       continue
     }
     const monthDeals = allDeals.filter((d) => dealTouchesMonth(d, ym))
@@ -113,7 +114,7 @@ export function Overview() {
         key,
         jaar: year,
         maand,
-        values: data[key] ?? emptyMonthMap(),
+        values: data[key] ?? null,
       }
     })
   }, [data, year, monthCount])
@@ -121,6 +122,7 @@ export function Overview() {
   const totals = useMemo(() => {
     const sum = emptyMonthMap()
     for (const row of rows) {
+      if (!row.values) continue
       for (const s of STAGES) sum[s] += Number(row.values[s] ?? 0)
     }
     return sum
@@ -292,10 +294,12 @@ export function Overview() {
                 <td className="overview-year-cell">{row.jaar}</td>
                 <td>{row.maand}</td>
                 {STAGES.map((s) => {
-                  const value = Number(row.values[s] ?? 0)
+                  const raw = row.values?.[s]
+                  const hasData = row.values != null && raw != null
+                  const value = hasData ? Number(raw) : 0
                   const target = Number(targets[s] ?? 0)
                   const klass =
-                    target > 0
+                    hasData && target > 0
                       ? (value >= target ? 'overview-cell-good' : 'overview-cell-bad')
                       : ''
                   return (
@@ -304,7 +308,7 @@ export function Overview() {
                       className={`${klass} overview-readonly-num`.trim()}
                       title="Alleen-lezen"
                     >
-                      {value}
+                      {hasData ? value : ''}
                     </td>
                   )
                 })}
