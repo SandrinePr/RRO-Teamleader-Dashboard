@@ -35,6 +35,9 @@ type YearData = Record<string, MonthMap | null>
 
 /** Alleen overzichts-tabel per jaar (blijft bij tab-wissel). */
 const overviewYearDataCache: Record<number, YearData> = {}
+const overviewCacheVersion: Record<number, number> = {}
+/** Bump na wijziging handmatige pipeline-data (invalidates browser-sessie-cache). */
+const OVERVIEW_DATA_VERSION = 3
 
 function emptyMonthMap(): MonthMap {
   return {
@@ -53,6 +56,10 @@ function buildYearOverviewData(allDeals: DealRow[], year: number, now: Date): Ye
     const ym = `${year}-${String(m).padStart(2, '0')}`
     if (year === 2024) {
       out[ym] = is2024PipelineDataMonth(ym) ? getManualOverviewMonth(ym) : null
+      continue
+    }
+    if (year === 2025) {
+      out[ym] = getManualOverviewMonth(ym)
       continue
     }
     const manual = getManualOverviewMonth(ym)
@@ -150,7 +157,7 @@ export function Overview() {
     const seq = ++overviewLoadSeq.current
 
     // Al eerder geladen voor dit jaar (bijv. terug vanaf Deals en offertes).
-    if (overviewYearDataCache[year]) {
+    if (overviewYearDataCache[year] && overviewCacheVersion[year] === OVERVIEW_DATA_VERSION) {
       setData(overviewYearDataCache[year])
       setLoading(false)
       setLoadingProgress(null)
@@ -179,6 +186,7 @@ export function Overview() {
 
         const yearData = buildYearOverviewData(allDeals, year, now)
         overviewYearDataCache[year] = yearData
+        overviewCacheVersion[year] = OVERVIEW_DATA_VERSION
         setData(yearData)
 
         if (overviewLoadSeq.current !== seq) return
@@ -191,7 +199,10 @@ export function Overview() {
           /geen token|auth\/login|token verlopen|unauthorized|401/i.test(msg)
         if (isAuth) {
           clearPipelineSession()
-          Object.keys(overviewYearDataCache).forEach((k) => delete overviewYearDataCache[Number(k)])
+          Object.keys(overviewYearDataCache).forEach((k) => {
+            delete overviewYearDataCache[Number(k)]
+            delete overviewCacheVersion[Number(k)]
+          })
           setError(null)
           setData({})
           const authUrl = `${window.location.origin}/auth/login`

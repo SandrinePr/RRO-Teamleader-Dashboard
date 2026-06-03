@@ -177,12 +177,13 @@ export const manualDealsByMonth: Record<string, ManualDealsMonth> = {
     ],
     offerte_geweigerd: ['Bespoke Design Studio', 'By Sven Design'],
   },
+  /** Closing-sheet: juni 2025 */
   '2025-06': {
     discovery_voorgesteld: ['Decoretti'],
-    discovery_gepland: ['Decoretti', 'BAAS Architecten'],
-    discovery_plaatsgevonden: ['HMVD Architecten', 'Lunova Keukens', 'Decoretti'],
-    offerte_verzonden: ['HMVD Architecten', 'Lunova Keukens', 'Rietpaneel', 'Slimme Villa'],
-    offerte_aanvaard: ['MC Floor Styling', 'De Opera Domotica'],
+    discovery_gepland: [],
+    discovery_plaatsgevonden: ['Decoretti'],
+    offerte_verzonden: ['HMVD Architecten', 'Lunova Keukens'],
+    offerte_aanvaard: ['MC Floor Styling'],
     offerte_geweigerd: ['Orchidee'],
   },
 
@@ -196,20 +197,19 @@ export const manualDealsByMonth: Record<string, ManualDealsMonth> = {
     offerte_geweigerd: ['Rietpaneel'],
   },
   '2025-08': {
-    discovery_gepland: ['Coenen Concept'],
     offerte_aanvaard: ['Domotica Design'],
   },
   '2025-09': {
     discovery_voorgesteld: ['Best in Light', 'DG Vloertechniek'],
     discovery_gepland: ['Best in Light', 'DG Vloertechniek'],
-    discovery_plaatsgevonden: ['Best in Light', 'Coenen Concept', 'DG Vloertechniek'],
-    offerte_verzonden: ['Best in Light', 'Luna Concepts & Photography', 'DG Vloertechniek'],
+    discovery_plaatsgevonden: [],
+    offerte_verzonden: ['Best in Light', 'DG Vloertechniek'],
     offerte_aanvaard: ['By Luna Concepts & Photography'],
     offerte_geweigerd: ['Baas Architecten', 'Lunova Keukens'],
   },
   '2025-10': {
     discovery_voorgesteld: ['Jurgen Smit'],
-    discovery_gepland: ['Jurgen Smit'],
+    discovery_gepland: [],
   },
   '2025-11': {
     discovery_voorgesteld: [
@@ -288,15 +288,37 @@ export const manualDealsByMonth: Record<string, ManualDealsMonth> = {
   },
 }
 
-/** Overzicht: afgeleid uit klantlijsten (zelfde aantallen als Deals-subtotaal). */
-export const manualOverviewByMonth: Record<string, ManualOverviewMonth> = Object.fromEntries(
-  Object.entries(manualDealsByMonth).map(([ym, deals]) => {
-    const cleared = offerteStagesEmptyForMonth(ym)
-      ? { ...deals, offerte_verzonden: [], offerte_aanvaard: [] }
-      : deals
-    return [ym, overviewFromDeals(cleared)]
-  }),
-)
+/**
+ * Overzicht 2025 (spreadsheet) — overschrijft afgeleide tellingen uit klantlijsten.
+ * Bron: TOTAAL jan; Closing feb–jun; Discovery jul–dec.
+ */
+const OVERVIEW_2025: Record<string, ManualOverviewMonth> = {
+  '2025-01': { 'Discovery call voorgesteld': 7, 'Discovery call ingepland': 3, 'Discovery call plaatsgevonden': 4, 'Offerte verzonden': 4, 'Offerte geaccepteerd': 2 },
+  '2025-02': { 'Discovery call voorgesteld': 6, 'Discovery call ingepland': 7, 'Discovery call plaatsgevonden': 5, 'Offerte verzonden': 1, 'Offerte geaccepteerd': 0 },
+  '2025-03': { 'Discovery call voorgesteld': 3, 'Discovery call ingepland': 5, 'Discovery call plaatsgevonden': 6, 'Offerte verzonden': 7, 'Offerte geaccepteerd': 1 },
+  '2025-04': { 'Discovery call voorgesteld': 8, 'Discovery call ingepland': 2, 'Discovery call plaatsgevonden': 0, 'Offerte verzonden': 0, 'Offerte geaccepteerd': 1 },
+  '2025-05': { 'Discovery call voorgesteld': 7, 'Discovery call ingepland': 7, 'Discovery call plaatsgevonden': 7, 'Offerte verzonden': 5, 'Offerte geaccepteerd': 0 },
+  '2025-06': { 'Discovery call voorgesteld': 1, 'Discovery call ingepland': 0, 'Discovery call plaatsgevonden': 1, 'Offerte verzonden': 2, 'Offerte geaccepteerd': 1 },
+  '2025-07': { 'Discovery call voorgesteld': 1, 'Discovery call ingepland': 0, 'Discovery call plaatsgevonden': 1, 'Offerte verzonden': 2, 'Offerte geaccepteerd': 1 },
+  '2025-08': { 'Discovery call voorgesteld': 0, 'Discovery call ingepland': 0, 'Discovery call plaatsgevonden': 0, 'Offerte verzonden': 0, 'Offerte geaccepteerd': 1 },
+  '2025-09': { 'Discovery call voorgesteld': 2, 'Discovery call ingepland': 2, 'Discovery call plaatsgevonden': 0, 'Offerte verzonden': 2, 'Offerte geaccepteerd': 1 },
+  '2025-10': { 'Discovery call voorgesteld': 1, 'Discovery call ingepland': 0, 'Discovery call plaatsgevonden': 0, 'Offerte verzonden': 0, 'Offerte geaccepteerd': 0 },
+  '2025-11': { 'Discovery call voorgesteld': 8, 'Discovery call ingepland': 2, 'Discovery call plaatsgevonden': 1, 'Offerte verzonden': 1, 'Offerte geaccepteerd': 0 },
+  '2025-12': { 'Discovery call voorgesteld': 6, 'Discovery call ingepland': 5, 'Discovery call plaatsgevonden': 4, 'Offerte verzonden': 3, 'Offerte geaccepteerd': 1 },
+}
+
+/** Overzicht: afgeleid uit klantlijsten; 2025 uit spreadsheet. */
+export const manualOverviewByMonth: Record<string, ManualOverviewMonth> = {
+  ...Object.fromEntries(
+    Object.entries(manualDealsByMonth).map(([ym, deals]) => {
+      const cleared = offerteStagesEmptyForMonth(ym)
+        ? { ...deals, offerte_verzonden: [], offerte_aanvaard: [] }
+        : deals
+      return [ym, overviewFromDeals(cleared)]
+    }),
+  ),
+  ...OVERVIEW_2025,
+}
 
 export function getManualDealsMonth(monthKey: string): ManualDealsMonth | null {
   const raw = manualDealsByMonth[monthKey]
