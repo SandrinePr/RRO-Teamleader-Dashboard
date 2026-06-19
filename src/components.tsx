@@ -463,7 +463,9 @@ export function DealsOffertesExcel({
     return map
   }, [users])
 
-  /** Rood = >14 dagen in fase offerte verzonden (datum uit phase_history, niet deal.updated_at). */
+  /** Rood = ≥3 maanden in fase offerte verzonden (datum uit phase_history). */
+  const STALE_OFFERTE_DAYS = 90
+
   const offerteVerzondenSince = (deal: DealRow): Date | null => {
     const anyDeal = deal as Record<string, unknown>
     const hist = anyDeal.phase_history as Array<Record<string, unknown>> | undefined
@@ -497,7 +499,7 @@ export function DealsOffertesExcel({
     const since = offerteVerzondenSince(deal)
     if (!since) return false
     const ageDays = (Date.now() - since.getTime()) / (1000 * 60 * 60 * 24)
-    return ageDays >= 14
+    return ageDays >= STALE_OFFERTE_DAYS
   }
 
   const dealDisplayName = (deal: DealRow, companyNameById: Record<string, string>, contactCompanyNameById: Record<string, string>): string => {
@@ -1011,7 +1013,7 @@ export function DealsOffertesExcel({
                               stage ? `Fase: ${stage}` : '',
                               'Deze stap in deze kolom',
                               `Kolom: ${String(DEALS_OFFERTES_STAGES[colIndex]?.label ?? id)}`,
-                              stale ? 'Let op: >14 dagen in fase offerte verzonden' : '',
+                              stale ? 'Let op: ≥3 maanden in fase offerte verzonden' : '',
                             ].filter(Boolean).join('\n')}
                           >
                             {displayName ? `${rowIndex + 1}. ${displayName}` : ''}
