@@ -5,6 +5,7 @@ import { Outlet } from 'react-router-dom'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import type { DealRow, ContactRow, CompanyRow, UserRow } from './api'
 import { PIPELINE_STAGES, DEALS_OFFERTES_STAGES, getDealPipelineStage } from './api'
+import { stagesReachedInMonth } from './pipelineMonthOverview'
 import { buildManualDealsByStage } from './manualPipeline'
 import { stageTargetsByIdForYear } from './pipelineTargets'
 import redRockWordmark from './assets/red-rock-wordmark.svg'
@@ -533,16 +534,6 @@ export function DealsOffertesExcel({
     return copy
   }
 
-  const PHASE_TO_STAGE: Record<string, string> = {
-    'cfcab239-a580-0baa-886c-ab6c07139f56': 'leads_appointment_setting_selah',
-    '024c5cb0-8dbd-0936-946b-8234a21119c7': 'lead_gekwalificeerd',
-    '43dbb965-8ce4-0e68-ad61-386a1e1119c8': 'discovery_voorgesteld',
-    '0385e81d-8526-0ebe-926f-f33c611119c9': 'discovery_gepland',
-    '1e7c4d04-ba14-0f20-866f-3823fe136cb6': 'discovery_plaatsgevonden',
-    '393c9be5-8374-0ceb-bf63-6038a31119ca': 'offerte_verzonden',
-    '8d3c023d-216a-0057-a362-75e6d81119cc': 'offerte_geweigerd',
-  }
-
   function toMonthKey(raw: string): string | null {
     if (!raw) return null
     // Lees maand direct uit de ruwe string om timezone-shifts te vermijden.
@@ -551,97 +542,6 @@ export function DealsOffertesExcel({
     const d = new Date(raw)
     if (Number.isNaN(d.getTime())) return null
     return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`
-  }
-
-  function phaseEntryToStage(phaseIdRaw: string, phaseNameRaw: string): string | null {
-    const phaseId = phaseIdRaw.toLowerCase()
-    const phaseName = phaseNameRaw.toLowerCase()
-    if (phaseId) {
-      const byExact = PHASE_TO_STAGE[phaseId]
-      if (byExact) return byExact
-      if (phaseId.startsWith('f084a9bc')) return 'offerte_aanvaard'
-    }
-    // Fallback op naam als id ontbreekt of niet klopt.
-    if (phaseName.includes('lead gekwalificeerd')) return 'lead_gekwalificeerd'
-    if (
-      phaseName.includes('appointment setting selah') ||
-      phaseName.includes('leads appointment setting selah')
-    ) {
-      return 'leads_appointment_setting_selah'
-    }
-    if (phaseName.includes('discovery call voorgesteld')) return 'discovery_voorgesteld'
-    if (phaseName.includes('discovery call gepland')) return 'discovery_gepland'
-    if (phaseName.includes('discovery call plaatsgevonden')) return 'discovery_plaatsgevonden'
-    if (phaseName.includes('offerte verzonden')) return 'offerte_verzonden'
-    if (phaseName.includes('offerte aanvaard') || phaseName.includes('offerte geaccepteerd'))
-      return 'offerte_aanvaard'
-    if (phaseName.includes('offerte geweigerd') || phaseName.includes('offerte afgewezen'))
-      return 'offerte_geweigerd'
-    return null
-  }
-
-  function stagesReachedInMonth(deal: DealRow, monthKey: string): Set<string> {
-    const out = new Set<string>()
-    const inferredMonthsByStage = inferStageMonthsByDeal(deal)
-    for (const [st, inferredMonth] of inferredMonthsByStage.entries()) {
-      if (inferredMonth === monthKey) out.add(st)
-    }
-    return out
-  }
-
-  function inferStageMonthsByDeal(deal: DealRow): Map<string, string> {
-    const anyDeal = deal as Record<string, unknown>
-    const hist = anyDeal.phase_history as Array<Record<string, unknown>> | undefined
-    if (!Array.isArray(hist)) return new Map<string, string>()
-    const explicitMonthsByStage = new Map<string, string>()
-    for (const entry of hist) {
-      const phase = (entry.phase as Record<string, unknown> | undefined) ?? undefined
-      const phaseId = String(phase?.id ?? '').toLowerCase()
-      const phaseName = String(phase?.name ?? '')
-      const startedAt = String(entry.started_at ?? '')
-      const stage = phaseEntryToStage(phaseId, phaseName)
-      if (!stage) continue
-      const m = toMonthKey(startedAt)
-      if (!m) continue
-      // Houd per stage alleen de eerste expliciete maand aan.
-      if (!explicitMonthsByStage.has(stage)) explicitMonthsByStage.set(stage, m)
-    }
-
-    const current = getDealPipelineStage(deal)
-    const baseOrder = [
-      'leads_appointment_setting_selah',
-      'discovery_voorgesteld',
-      'discovery_gepland',
-      'discovery_plaatsgevonden',
-      'offerte_verzonden',
-    ]
-    const stageOrder =
-      current === 'offerte_geweigerd'
-        ? [...baseOrder, 'offerte_geweigerd']
-        : [...baseOrder, 'offerte_aanvaard']
-
-    // Vul alleen tussenstappen zonder datum in.
-    const hasLaterExplicit = (idx: number): boolean => {
-      for (let i = idx + 1; i < stageOrder.length; i++) {
-        if (explicitMonthsByStage.get(stageOrder[i])) return true
-      }
-      return false
-    }
-    let inheritedMonth = ''
-    const inferredMonthsByStage = new Map<string, string>()
-    for (let i = 0; i < stageOrder.length; i++) {
-      const st = stageOrder[i]
-      const explicit = explicitMonthsByStage.get(st) ?? ''
-      if (explicit) {
-        inheritedMonth = explicit
-        inferredMonthsByStage.set(st, explicit)
-        continue
-      }
-      if (inheritedMonth && hasLaterExplicit(i)) {
-        inferredMonthsByStage.set(st, inheritedMonth)
-      }
-    }
-    return inferredMonthsByStage
   }
 
   function normalizeKindValue(v: unknown): string {
@@ -758,6 +658,8 @@ export function DealsOffertesExcel({
               if (
                 !hasHistory &&
                 fallbackStage &&
+                fallbackStage !== 'offerte_aanvaard' &&
+                fallbackStage !== 'offerte_geweigerd' &&
                 byStageActual[fallbackStage] &&
                 dealTouchesMonth(d, value)
               ) {

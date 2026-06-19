@@ -62,6 +62,27 @@ function phaseEntryToStage(phaseIdRaw: string, phaseNameRaw: string): string | n
   return null
 }
 
+const OUTCOME_STAGES = new Set(['offerte_aanvaard', 'offerte_geweigerd'])
+
+function explicitStageMonthsByDeal(deal: DealRow): Map<string, string> {
+  const anyDeal = deal as Record<string, unknown>
+  const hist = anyDeal.phase_history as Array<Record<string, unknown>> | undefined
+  if (!Array.isArray(hist)) return new Map<string, string>()
+  const explicitMonthsByStage = new Map<string, string>()
+  for (const entry of hist) {
+    const phase = (entry.phase as Record<string, unknown> | undefined) ?? undefined
+    const phaseId = String(phase?.id ?? '').toLowerCase()
+    const phaseName = String(phase?.name ?? '')
+    const startedAt = String(entry.started_at ?? '')
+    const stage = phaseEntryToStage(phaseId, phaseName)
+    if (!stage) continue
+    const m = toMonthKey(startedAt)
+    if (!m) continue
+    if (!explicitMonthsByStage.has(stage)) explicitMonthsByStage.set(stage, m)
+  }
+  return explicitMonthsByStage
+}
+
 function inferStageMonthsByDeal(deal: DealRow): Map<string, string> {
   const anyDeal = deal as Record<string, unknown>
   const hist = anyDeal.phase_history as Array<Record<string, unknown>> | undefined
@@ -116,9 +137,16 @@ function inferStageMonthsByDeal(deal: DealRow): Map<string, string> {
 }
 
 function stagesReachedInMonth(deal: DealRow, monthKey: string): Set<string> {
+  const inferred = inferStageMonthsByDeal(deal)
+  const explicit = explicitStageMonthsByDeal(deal)
   const out = new Set<string>()
-  for (const [st, inferredMonth] of inferStageMonthsByDeal(deal).entries()) {
-    if (inferredMonth === monthKey) out.add(st)
+  for (const [st, inferredMonth] of inferred.entries()) {
+    if (inferredMonth !== monthKey) continue
+    if (OUTCOME_STAGES.has(st)) {
+      if (explicit.get(st) === monthKey) out.add(st)
+    } else {
+      out.add(st)
+    }
   }
   return out
 }
@@ -185,6 +213,8 @@ function dealTouchesMonth(deal: DealRow, monthKey: string): boolean {
   return false
 }
 
+export { stagesReachedInMonth }
+
 /** Zelfde kolom-plaatsing als Deals & offertes voor één maand. */
 export function buildDealsByStageForMonth(
   deals: DealRow[],
@@ -210,6 +240,7 @@ export function buildDealsByStageForMonth(
       if (
         !hasHistory &&
         fallbackStage &&
+        !OUTCOME_STAGES.has(fallbackStage) &&
         byStageActual[fallbackStage] &&
         dealTouchesMonth(d, monthKey)
       ) {
