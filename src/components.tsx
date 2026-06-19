@@ -463,15 +463,40 @@ export function DealsOffertesExcel({
     return map
   }, [users])
 
-  const isStaleOffer = (deal: DealRow) => {
+  /** Rood = >14 dagen in fase offerte verzonden (datum uit phase_history, niet deal.updated_at). */
+  const offerteVerzondenSince = (deal: DealRow): Date | null => {
     const anyDeal = deal as Record<string, unknown>
+    const hist = anyDeal.phase_history as Array<Record<string, unknown>> | undefined
+    if (Array.isArray(hist)) {
+      let latest: Date | null = null
+      for (const entry of hist) {
+        const phase = (entry.phase as Record<string, unknown> | undefined) ?? undefined
+        const phaseId = String(phase?.id ?? '').toLowerCase()
+        const phaseName = String(phase?.name ?? '').toLowerCase()
+        const isVerzonden =
+          phaseId === '393c9be5-8374-0ceb-bf63-6038a31119ca' ||
+          phaseName.includes('offerte verzonden')
+        if (!isVerzonden) continue
+        const startedAt = String(entry.started_at ?? '')
+        if (!startedAt) continue
+        const d = new Date(startedAt)
+        if (Number.isNaN(d.getTime())) continue
+        if (!latest || d > latest) latest = d
+      }
+      if (latest) return latest
+    }
+    const raw = (anyDeal.updated_at as string | undefined) ?? deal.updated_at ?? deal.created_at ?? ''
+    if (!raw) return null
+    const d = new Date(raw)
+    return Number.isNaN(d.getTime()) ? null : d
+  }
+
+  const isStaleOffer = (deal: DealRow) => {
     const stage = getDealPipelineStage(deal)
     if (stage !== 'offerte_verzonden') return false
-    const raw = (anyDeal.updated_at as string | undefined) ?? deal.updated_at ?? deal.created_at ?? ''
-    if (!raw) return false
-    const d = new Date(raw)
-    if (Number.isNaN(d.getTime())) return false
-    const ageDays = (Date.now() - d.getTime()) / (1000 * 60 * 60 * 24)
+    const since = offerteVerzondenSince(deal)
+    if (!since) return false
+    const ageDays = (Date.now() - since.getTime()) / (1000 * 60 * 60 * 24)
     return ageDays >= 14
   }
 
@@ -986,7 +1011,7 @@ export function DealsOffertesExcel({
                               stage ? `Fase: ${stage}` : '',
                               'Deze stap in deze kolom',
                               `Kolom: ${String(DEALS_OFFERTES_STAGES[colIndex]?.label ?? id)}`,
-                              stale ? 'Let op: offerte > 14 dagen stil' : '',
+                              stale ? 'Let op: >14 dagen in fase offerte verzonden' : '',
                             ].filter(Boolean).join('\n')}
                           >
                             {displayName ? `${rowIndex + 1}. ${displayName}` : ''}
