@@ -2,14 +2,14 @@
  * API helpers + Teamleader types + fase-mapping.
  */
 
-/** Leeg = same-origin (productie). Negeer per ongeluk ingebakken localhost-URL buiten dev. */
+/** Leeg = same-origin (productie). Buiten localhost altijd same-origin, ongeacht build-env. */
 export function resolveApiBase(): string {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname
+    if (host !== 'localhost' && host !== '127.0.0.1') return ''
+  }
   const fromEnv =
     typeof import.meta.env.VITE_API_URL === 'string' ? import.meta.env.VITE_API_URL.trim() : ''
-  if (typeof window === 'undefined') return fromEnv
-  const host = window.location.hostname
-  const onLocalDev = host === 'localhost' || host === '127.0.0.1'
-  if (!onLocalDev && fromEnv && /localhost|127\.0\.0\.1/i.test(fromEnv)) return ''
   return fromEnv
 }
 

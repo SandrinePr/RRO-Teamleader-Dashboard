@@ -22,6 +22,14 @@ const DEBUG_DEALS =
   (new URLSearchParams(window.location.search).get('debugDeals') === '1' ||
     window.localStorage.getItem('rro_debug_deals') === '1')
 
+function formatFetchError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : 'Ophalen mislukt'
+  if (/geen token|auth\/login|unauthorized|401/i.test(msg)) {
+    return `Niet ingelogd bij Teamleader. Open ${window.location.origin}/auth/login en laad daarna deze pagina opnieuw.`
+  }
+  return msg
+}
+
 export function Dashboard() {
   const navigate = useNavigate()
   const [dealsLoading, setDealsLoading] = useState<boolean>(() => {
@@ -68,7 +76,7 @@ export function Dashboard() {
         setContacts(ct.data ?? [])
         setUsers(u.data ?? [])
       })
-      .catch((e) => setError(e instanceof Error ? e.message : 'Ophalen mislukt'))
+      .catch((e) => setError(formatFetchError(e)))
   }, [])
 
   function cacheKeyFor(targetPeriod: string): string {
@@ -183,7 +191,7 @@ export function Dashboard() {
       .catch((e) => {
         if (seq !== dealsRequestSeq.current) return
         console.error('[deals:ui-error]', { period, seq, error: e, message: e instanceof Error ? e.message : String(e) })
-        setError(e instanceof Error ? e.message : 'Ophalen mislukt')
+        setError(formatFetchError(e))
       })
       .finally(() => {
         if (seq === dealsRequestSeq.current) {
