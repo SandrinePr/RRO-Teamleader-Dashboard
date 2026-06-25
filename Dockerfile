@@ -7,6 +7,8 @@ COPY public ./public
 COPY src ./src
 
 RUN npm ci
+# Productie: same-origin API. Overschrijf eventuele VITE_API_URL=localhost uit Railway/build-env.
+ENV VITE_API_URL=
 RUN npm run build
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS backend-publish

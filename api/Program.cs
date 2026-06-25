@@ -64,7 +64,10 @@ DateTimeOffset dealsWithCompaniesCacheStaleUntilUtc = DateTimeOffset.MinValue;
 var dealsWithCompaniesMonthCache = new Dictionary<string, (JsonObject payload, DateTimeOffset expiresUtc)>(StringComparer.OrdinalIgnoreCase);
 var dealInfoCacheLock = new object();
 var dealInfoCache = new Dictionary<string, (JsonObject data, DateTimeOffset expiresUtc)>(StringComparer.OrdinalIgnoreCase);
-var dealInfoThrottle = new SemaphoreSlim(1, 1);
+var dealInfoConcurrency = int.TryParse(Environment.GetEnvironmentVariable("TEAMLEADER_DEAL_INFO_CONCURRENCY"), out var _concParsed)
+  ? Math.Clamp(_concParsed, 1, 16)
+  : 6;
+var dealInfoThrottle = new SemaphoreSlim(dealInfoConcurrency, dealInfoConcurrency);
 
 JsonObject NewCustomersPipelineFilter() => new()
 {
@@ -73,6 +76,14 @@ JsonObject NewCustomersPipelineFilter() => new()
 
 void LoadTokens()
 {
+  var envAccess = Environment.GetEnvironmentVariable("TEAMLEADER_ACCESS_TOKEN");
+  var envRefresh = Environment.GetEnvironmentVariable("TEAMLEADER_REFRESH_TOKEN");
+  if (!string.IsNullOrWhiteSpace(envAccess))
+  {
+    _accessToken = envAccess.Trim();
+    _refreshToken = string.IsNullOrWhiteSpace(envRefresh) ? null : envRefresh.Trim();
+    return;
+  }
   if (!File.Exists(tokensFile)) return;
   try
   {
@@ -513,18 +524,12 @@ app.MapGet("/deals-with-companies", async (HttpContext http, IHttpClientFactory 
 
   if (hasMonthFilter && enableDealInfoEnrichmentForMonth)
   {
-    // Verrijk met phase_history per deal (geserialiseerd + throttled)
-    await dealInfoThrottle.WaitAsync();
-    try
+    async Task EnrichOneDealAsync(JsonObject dealObj, string id)
     {
-      foreach (var deal in dealsArray)
+      await dealInfoThrottle.WaitAsync();
+      try
       {
-        if (deal is not JsonObject dealObj) continue;
-        if (dealObj["phase_history"] is JsonArray) continue;
-        var id = dealObj["id"]?.GetValue<string>();
-        if (string.IsNullOrWhiteSpace(id)) continue;
-
-        var info = await FetchDealInfoWithRetry(f, id!);
+        var info = await FetchDealInfoWithRetry(f, id);
         if (info != null)
         {
           if (info["phase_history"] != null) dealObj["phase_history"] = info["phase_history"]!.DeepClone();
@@ -533,14 +538,24 @@ app.MapGet("/deals-with-companies", async (HttpContext http, IHttpClientFactory 
           if (dealObj["customFieldValues"] == null && info["customFieldValues"] != null) dealObj["customFieldValues"] = info["customFieldValues"]!.DeepClone();
           if (dealObj["custom_field_values"] == null && info["custom_field_values"] != null) dealObj["custom_field_values"] = info["custom_field_values"]!.DeepClone();
         }
-        // Kleine pauze tussen deals.info-calls (instelbaar), voor balans tussen snelheid en 429-risico.
         if (dealInfoDelayMs > 0) await Task.Delay(dealInfoDelayMs);
       }
+      finally
+      {
+        dealInfoThrottle.Release();
+      }
     }
-    finally
+
+    var enrichTasks = new List<Task>();
+    foreach (var deal in dealsArray)
     {
-      dealInfoThrottle.Release();
+      if (deal is not JsonObject dealObj) continue;
+      if (dealObj["phase_history"] is JsonArray) continue;
+      var id = dealObj["id"]?.GetValue<string>();
+      if (string.IsNullOrWhiteSpace(id)) continue;
+      enrichTasks.Add(EnrichOneDealAsync(dealObj, id!));
     }
+    await Task.WhenAll(enrichTasks);
 
     // Geen cohort-filter op eerste discovery; maandset blijft gebaseerd op activiteit.
 

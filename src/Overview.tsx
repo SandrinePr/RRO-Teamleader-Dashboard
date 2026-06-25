@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { DealRow } from './api'
+import { resolveApiBase, type DealRow } from './api'
 import { overviewMonthMapFromDeals } from './pipelineMonthOverview'
 import {
   fetchEnrichedDealsForMonth,
@@ -224,9 +224,7 @@ export function Overview() {
         overviewCacheVersion[year] = cacheToken
         if (isAuth) {
           clearPipelineSession()
-          const apiBase =
-            (typeof import.meta.env.VITE_API_URL === 'string' && import.meta.env.VITE_API_URL) ||
-            window.location.origin
+          const apiBase = resolveApiBase() || window.location.origin
           setError(null)
           setFetchHint(
             `Live pipeline-cijfers (vanaf juni 2026) laden na inloggen bij Teamleader: open ${apiBase}/auth/login. Controle: ${apiBase}/auth/info`,
