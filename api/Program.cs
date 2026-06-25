@@ -66,6 +66,11 @@ var dealInfoCacheLock = new object();
 var dealInfoCache = new Dictionary<string, (JsonObject data, DateTimeOffset expiresUtc)>(StringComparer.OrdinalIgnoreCase);
 var dealInfoThrottle = new SemaphoreSlim(1, 1);
 
+JsonObject NewCustomersPipelineFilter() => new()
+{
+  ["pipeline_ids"] = new JsonArray { newCustomersPipelineId },
+};
+
 void LoadTokens()
 {
   if (!File.Exists(tokensFile)) return;
@@ -419,7 +424,8 @@ app.MapGet("/deals-with-companies", async (HttpContext http, IHttpClientFactory 
     }
   }
 
-  var (dealsArray, included, err) = await FetchAllListData(f, "deals.list", include: "lead.customer");
+  var (dealsArray, included, err) = await FetchAllListData(
+    f, "deals.list", include: "lead.customer", filter: NewCustomersPipelineFilter());
   if (err != null)
   {
     lock (dealsWithCompaniesCacheLock)
@@ -820,8 +826,8 @@ app.MapGet("/deals-with-companies", async (HttpContext http, IHttpClientFactory 
     lock (dealsWithCompaniesCacheLock)
     {
       dealsWithCompaniesCachePayload = payload;
-      dealsWithCompaniesCacheExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(1);
-      dealsWithCompaniesCacheStaleUntilUtc = DateTimeOffset.UtcNow.AddMinutes(10);
+      dealsWithCompaniesCacheExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(10);
+      dealsWithCompaniesCacheStaleUntilUtc = DateTimeOffset.UtcNow.AddMinutes(30);
     }
   }
   else

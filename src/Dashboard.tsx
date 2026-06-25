@@ -10,6 +10,7 @@ import { DealsOffertesExcel } from './components'
 import {
   dealTouchesMonth,
   fetchAllPipelineDeals,
+  fetchEnrichedDealsForMonth,
   pipelineSession,
 } from './pipelineSession'
 import { isManualPipelineMonth } from './manualPipeline'
@@ -23,7 +24,10 @@ const DEBUG_DEALS =
 
 export function Dashboard() {
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(true)
+  const [dealsLoading, setDealsLoading] = useState<boolean>(() => {
+    const key = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
+    return !isManualPipelineMonth(key) && !pipelineSession.monthDealsCache[key]
+  })
   const [loadingHint, setLoadingHint] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [deals, setDeals] = useState<DealRow[]>([])
@@ -101,6 +105,15 @@ export function Dashboard() {
 
     const monthKeys = monthTabs.map((t) => t.value)
     const request = (async () => {
+      if (targetPeriod !== 'all' && !isManualPipelineMonth(targetPeriod)) {
+        const rows = await fetchEnrichedDealsForMonth(targetPeriod)
+        if (DEBUG_DEALS) {
+          console.info('[deals:enriched-month]', { period: targetPeriod, key, count: rows.length })
+        }
+        pipelineSession.monthDealsCache[key] = rows
+        return rows
+      }
+
       const allDeals = await fetchAllPipelineDeals()
       const rows = dealsForPeriodFromAll(allDeals, targetPeriod, monthKeys)
       if (DEBUG_DEALS) {
@@ -135,7 +148,7 @@ export function Dashboard() {
     const key = cacheKeyFor(period)
     if (period !== 'all' && isManualPipelineMonth(period)) {
       setDeals([])
-      setLoading(false)
+      setDealsLoading(false)
       setLoadingHint(null)
       setError(null)
       return
@@ -143,17 +156,21 @@ export function Dashboard() {
 
     if (pipelineSession.monthDealsCache[key]) {
       setDeals(pipelineSession.monthDealsCache[key])
-      setLoading(false)
+      setDealsLoading(false)
       setLoadingHint(null)
       return
     }
 
     const seq = ++dealsRequestSeq.current
-    setLoading(true)
+    setDealsLoading(true)
     setLoadingHint(
-      pipelineSession.allDeals
-        ? `${year}: deals filteren…`
-        : 'Teamleader: deals ophalen (gedeeld met Overzicht)…',
+      pipelineSession.monthDealsCache[key]
+        ? null
+        : isManualPipelineMonth(period)
+          ? null
+          : period === 'all'
+            ? 'Teamleader: alle deals ophalen…'
+            : `Teamleader: ${period} ophalen (met fase-historie)…`,
     )
 
     fetchDealsForPeriod(period)
@@ -171,19 +188,10 @@ export function Dashboard() {
       .finally(() => {
         if (seq === dealsRequestSeq.current) {
           setLoadingHint(null)
-          setLoading(false)
+          setDealsLoading(false)
         }
       })
   }, [period, year])
-
-  if (loading) {
-    return (
-      <div className="dashboard">
-        <p>Bezig met ophalen…{loadingHint ? ` ${loadingHint}` : ''}</p>
-      </div>
-    )
-  }
-  if (error) return <div className="dashboard"><p className="dashboard-error">{error}</p></div>
 
   return (
     <div className="dashboard dashboard-deals-only rro-overview">
@@ -238,6 +246,12 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+      {error && <p className="dashboard-error">{error}</p>}
+      {dealsLoading && (
+        <p className="pipeline-discovery-empty">
+          Bezig met ophalen…{loadingHint ? ` ${loadingHint}` : ''}
+        </p>
+      )}
       <DealsOffertesExcel
         deals={deals}
         companies={companies}

@@ -3,6 +3,7 @@
  */
 
 export const PIPELINE_TARGET_STAGES = [
+  'Leads Appointment Setting Selah',
   'Discovery call voorgesteld',
   'Discovery call ingepland',
   'Discovery call plaatsgevonden',
@@ -19,6 +20,7 @@ const STORAGE_LEGACY = 'rro_manual_pipeline_targets'
 
 const DEFAULT_BY_YEAR: Record<number, PipelineTargets> = {
   2024: {
+    'Leads Appointment Setting Selah': 0,
     'Discovery call voorgesteld': 6,
     'Discovery call ingepland': 4,
     'Discovery call plaatsgevonden': 4,
@@ -26,6 +28,7 @@ const DEFAULT_BY_YEAR: Record<number, PipelineTargets> = {
     'Offerte geaccepteerd': 1,
   },
   2025: {
+    'Leads Appointment Setting Selah': 0,
     'Discovery call voorgesteld': 6,
     'Discovery call ingepland': 4,
     'Discovery call plaatsgevonden': 4,
@@ -33,6 +36,7 @@ const DEFAULT_BY_YEAR: Record<number, PipelineTargets> = {
     'Offerte geaccepteerd': 1,
   },
   2026: {
+    'Leads Appointment Setting Selah': 24,
     'Discovery call voorgesteld': 18,
     'Discovery call ingepland': 12,
     'Discovery call plaatsgevonden': 10,
@@ -49,6 +53,7 @@ function normalizeTargets(raw: Partial<PipelineTargets> | null | undefined): Pip
   const base = defaultTargetsForYear(2025)
   if (!raw) return base
   return {
+    'Leads Appointment Setting Selah': Number(raw['Leads Appointment Setting Selah'] ?? base['Leads Appointment Setting Selah']),
     'Discovery call voorgesteld': Number(raw['Discovery call voorgesteld'] ?? base['Discovery call voorgesteld']),
     'Discovery call ingepland': Number(raw['Discovery call ingepland'] ?? base['Discovery call ingepland']),
     'Discovery call plaatsgevonden': Number(raw['Discovery call plaatsgevonden'] ?? base['Discovery call plaatsgevonden']),
@@ -113,7 +118,7 @@ export function stageTargetsByIdForYear(year: number): Record<string, number> {
   const t = loadTargetsForYear(year)
   return {
     lead_gekwalificeerd: 0,
-    leads_appointment_setting_selah: 0,
+    leads_appointment_setting_selah: t['Leads Appointment Setting Selah'],
     discovery_voorgesteld: t['Discovery call voorgesteld'],
     discovery_gepland: t['Discovery call ingepland'],
     discovery_plaatsgevonden: t['Discovery call plaatsgevonden'],

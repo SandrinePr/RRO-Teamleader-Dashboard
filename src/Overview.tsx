@@ -7,8 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import type { DealRow } from './api'
 import { overviewMonthMapFromDeals } from './pipelineMonthOverview'
 import {
-  fetchAllPipelineDeals,
-  pipelineSession,
+  fetchEnrichedDealsForMonth,
   clearPipelineSession,
 } from './pipelineSession'
 import {
@@ -35,18 +34,56 @@ type YearData = Record<string, MonthMap | null>
 
 /** Alleen overzichts-tabel per jaar (blijft bij tab-wissel). */
 const overviewYearDataCache: Record<number, YearData> = {}
-const overviewCacheVersion: Record<number, number> = {}
+const overviewCacheVersion: Record<number, string> = {}
 /** Bump na wijziging handmatige pipeline-data (invalidates browser-sessie-cache). */
-const OVERVIEW_DATA_VERSION = 9
+const OVERVIEW_DATA_VERSION = 12
+
+/** Invalideer cache bij nieuwe kalendermaand (2026 groeit t/m huidige maand). */
+function overviewCacheToken(year: number, now: Date): string {
+  const monthCount = year === 2026 ? now.getMonth() + 1 : 12
+  return `${OVERVIEW_DATA_VERSION}:${monthCount}`
+}
+
+/** Maanden die live uit Teamleader komen (met phase_history via ?month=). */
+function apiMonthKeysForYear(year: number, now: Date): string[] {
+  if (year !== 2026) return []
+  const maxM = now.getMonth() + 1
+  const keys: string[] = []
+  for (let m = 1; m <= maxM; m++) {
+    const ym = `${year}-${String(m).padStart(2, '0')}`
+    if (getManualOverviewMonth(ym)) continue
+    if (isManualPipelineMonth(ym)) continue
+    keys.push(ym)
+  }
+  return keys
+}
+
+async function refreshApiMonthsInYearData(
+  base: YearData,
+  year: number,
+  now: Date,
+): Promise<YearData> {
+  const out = { ...base }
+  for (const ym of apiMonthKeysForYear(year, now)) {
+    const deals = await fetchEnrichedDealsForMonth(ym)
+    out[ym] = overviewMonthMapFromDeals(deals, ym)
+  }
+  return out
+}
 
 function emptyMonthMap(): MonthMap {
   return {
+    'Leads Appointment Setting Selah': 0,
     'Discovery call voorgesteld': 0,
     'Discovery call ingepland': 0,
     'Discovery call plaatsgevonden': 0,
     'Offerte verzonden': 0,
     'Offerte geaccepteerd': 0,
   }
+}
+
+function buildManualYearOverviewData(year: number, now: Date): YearData {
+  return buildYearOverviewData([], year, now)
 }
 
 function buildYearOverviewData(allDeals: DealRow[], year: number, now: Date): YearData {
@@ -83,7 +120,13 @@ export function Overview() {
   const initialYear = Math.min(2026, Math.max(2024, now.getFullYear()))
   const [year, setYear] = useState<number>(initialYear)
   /** Pipeline per maand: alleen uit API (read-only in UI). */
-  const [data, setData] = useState<YearData>(() => overviewYearDataCache[initialYear] ?? {})
+  const [data, setData] = useState<YearData>(() => {
+    const cached = overviewYearDataCache[initialYear]
+    if (cached && overviewCacheVersion[initialYear] === overviewCacheToken(initialYear, now)) {
+      return cached
+    }
+    return buildManualYearOverviewData(initialYear, now)
+  })
   const [targets, setTargets] = useState<PipelineTargets>(() => loadTargetsForYear(initialYear))
   const [loading, setLoading] = useState(false)
   /** Voortgang: zware API-call per maand; Strict Mode mag de lus niet afbreken na maand 1. */
@@ -125,6 +168,7 @@ export function Overview() {
 
   const successRatios = useMemo(() => {
     return {
+      voorgesteld: pctTarget(totals['Discovery call voorgesteld'], totals['Leads Appointment Setting Selah']),
       ingepland: pctTarget(totals['Discovery call ingepland'], totals['Discovery call voorgesteld']),
       plaatsgevonden: pctTarget(totals['Discovery call plaatsgevonden'], totals['Discovery call ingepland']),
       verzonden: pctTarget(totals['Offerte verzonden'], totals['Discovery call plaatsgevonden']),
@@ -135,38 +179,35 @@ export function Overview() {
   // Vul de "Jaar x Maand" tabel (read-only); targets uit localStorage.
   useEffect(() => {
     const seq = ++overviewLoadSeq.current
-
-    // Al eerder geladen voor dit jaar (bijv. terug vanaf Deals en offertes).
-    if (overviewYearDataCache[year] && overviewCacheVersion[year] === OVERVIEW_DATA_VERSION) {
-      setData(overviewYearDataCache[year])
-      setLoading(false)
-      setLoadingProgress(null)
-      setError(null)
-      setFetchHint(null)
-      return
-    }
+    const cacheToken = overviewCacheToken(year, now)
+    const cached = overviewYearDataCache[year]
+    const cacheHit = Boolean(cached && overviewCacheVersion[year] === cacheToken)
 
     setLoading(true)
     setLoadingProgress(null)
     setFetchHint(null)
-    if (!pipelineSession.allDeals) setData({})
+    if (!cacheHit) {
+      setData(buildManualYearOverviewData(year, now))
+    }
 
     ;(async () => {
       try {
         if (overviewLoadSeq.current !== seq) return
 
-        let allDeals = pipelineSession.allDeals
-        if (!allDeals) {
-          setLoadingProgress('Teamleader: alle deals ophalen (één keer voor 2024–2026)…')
-          allDeals = await fetchAllPipelineDeals()
-        } else {
-          setLoadingProgress(`${year}: maanden berekenen…`)
+        const apiMonths = apiMonthKeysForYear(year, now)
+        if (apiMonths.length > 0) {
+          setLoadingProgress(`Teamleader: ${apiMonths.join(', ')} ophalen (met fase-historie)…`)
         }
         if (overviewLoadSeq.current !== seq) return
 
-        const yearData = buildYearOverviewData(allDeals, year, now)
+        const base = cacheHit ? { ...cached! } : buildManualYearOverviewData(year, now)
+        const yearData = apiMonths.length > 0
+          ? await refreshApiMonthsInYearData(base, year, now)
+          : base
+        if (overviewLoadSeq.current !== seq) return
+
         overviewYearDataCache[year] = yearData
-        overviewCacheVersion[year] = OVERVIEW_DATA_VERSION
+        overviewCacheVersion[year] = cacheToken
         setData(yearData)
 
         if (overviewLoadSeq.current !== seq) return
@@ -177,18 +218,18 @@ export function Overview() {
         const msg = e instanceof Error ? e.message : 'Ophalen mislukt'
         const isAuth =
           /geen token|auth\/login|token verlopen|unauthorized|401/i.test(msg)
+        const partial = buildManualYearOverviewData(year, now)
+        setData(partial)
+        overviewYearDataCache[year] = partial
+        overviewCacheVersion[year] = cacheToken
         if (isAuth) {
           clearPipelineSession()
-          Object.keys(overviewYearDataCache).forEach((k) => {
-            delete overviewYearDataCache[Number(k)]
-            delete overviewCacheVersion[Number(k)]
-          })
+          const apiBase =
+            (typeof import.meta.env.VITE_API_URL === 'string' && import.meta.env.VITE_API_URL) ||
+            window.location.origin
           setError(null)
-          setData({})
-          const authUrl = `${window.location.origin}/auth/login`
-          const infoUrl = `${window.location.origin}/auth/info`
           setFetchHint(
-            `Live pipeline-cijfers laden na inloggen bij Teamleader: open ${authUrl}. Controle: ${infoUrl}`,
+            `Live pipeline-cijfers (vanaf juni 2026) laden na inloggen bij Teamleader: open ${apiBase}/auth/login. Controle: ${apiBase}/auth/info`,
           )
         } else {
           setError(msg)
@@ -269,6 +310,7 @@ export function Overview() {
             <tr>
               <td>Succesratio's</td>
               <td />
+              <td>{pctTarget(targets['Discovery call voorgesteld'], targets['Leads Appointment Setting Selah'])}</td>
               <td>{pctTarget(targets['Discovery call ingepland'], targets['Discovery call voorgesteld'])}</td>
               <td>{pctTarget(targets['Discovery call plaatsgevonden'], targets['Discovery call ingepland'])}</td>
               <td>{pctTarget(targets['Offerte verzonden'], targets['Discovery call plaatsgevonden'])}</td>
@@ -320,6 +362,7 @@ export function Overview() {
             <tr>
               <td colSpan={2}>Succesratio's</td>
               <td />
+              <td>{successRatios.voorgesteld}</td>
               <td>{successRatios.ingepland}</td>
               <td>{successRatios.plaatsgevonden}</td>
               <td>{successRatios.verzonden}</td>

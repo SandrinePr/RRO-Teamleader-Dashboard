@@ -1,6 +1,6 @@
 /** Gedeelde dashboardcomponenten en Deals & Offertes overzicht. */
 
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Outlet } from 'react-router-dom'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import type { DealRow, ContactRow, CompanyRow, UserRow } from './api'
@@ -8,11 +8,21 @@ import { PIPELINE_STAGES, DEALS_OFFERTES_STAGES, getDealPipelineStage } from './
 import { stagesReachedInMonth } from './pipelineMonthOverview'
 import { buildManualDealsByStage } from './manualPipeline'
 import { stageTargetsByIdForYear } from './pipelineTargets'
+import { fetchEnrichedDealsForMonth } from './pipelineSession'
+import { isManualPipelineMonth } from './manualPipeline'
 import redRockWordmark from './assets/red-rock-wordmark.svg'
 
 const CHART_COLORS = ['#4a9eff', '#6bcf7f', '#e57373', '#f0ad4e', '#9b59b6']
 
 export function Layout() {
+  useEffect(() => {
+    const now = new Date()
+    const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    if (!isManualPipelineMonth(ym)) {
+      void fetchEnrichedDealsForMonth(ym).catch(() => {})
+    }
+  }, [])
+
   return (
     <div className="layout">
       <header className="layout-header">

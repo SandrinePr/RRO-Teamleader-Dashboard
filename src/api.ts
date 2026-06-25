@@ -2,7 +2,8 @@
  * API helpers + Teamleader types + fase-mapping.
  */
 
-const BASE = ''
+const BASE =
+  (typeof import.meta.env.VITE_API_URL === 'string' && import.meta.env.VITE_API_URL) || ''
 const DEBUG_FETCH =
   typeof window !== 'undefined' &&
   (new URLSearchParams(window.location.search).get('debugDeals') === '1' ||
@@ -105,7 +106,6 @@ export const DEALS_OFFERTES_STAGES = [
   { id: 'discovery_plaatsgevonden', label: 'Discovery plaatsgevonden' },
   { id: 'offerte_verzonden', label: 'Offerte verzonden' },
   { id: 'offerte_aanvaard', label: 'Offerte geaccepteerd' },
-  { id: 'offerte_geweigerd', label: 'Offerte afgewezen' },
 ] as const
 
 // Bekende Teamleader phase-id's die direct naar onze stages mappen.

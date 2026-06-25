@@ -4,15 +4,18 @@
  */
 
 import { apiGet, type ApiListResponse, type DealRow } from './api'
+import { clearOverviewMonthMapCache } from './pipelineMonthOverview'
 
 export const NEW_CUSTOMERS_PIPELINE_ID = 'f2d4af30-1e5d-054b-a54c-1b91b0b57200'
 
 export const pipelineSession = {
   allDeals: null as DealRow[] | null,
   inFlight: null as Promise<DealRow[]> | null,
-  /** Deals per maand/jaar-key (Dashboard). */
+  /** Deals per maand/jaar-key (Dashboard + verrijkte API-maanden). */
   monthDealsCache: {} as Record<string, DealRow[]>,
 }
+
+const enrichedMonthInFlight: Partial<Record<string, Promise<DealRow[]>>> = {}
 
 export function toMonthKey(raw: string): string | null {
   if (!raw) return null
@@ -46,6 +49,31 @@ export function filterNewCustomersPipeline(rows: DealRow[]): DealRow[] {
   })
 }
 
+export async function fetchEnrichedDealsForMonth(monthKey: string): Promise<DealRow[]> {
+  if (pipelineSession.monthDealsCache[monthKey]) {
+    return pipelineSession.monthDealsCache[monthKey]
+  }
+  if (enrichedMonthInFlight[monthKey]) {
+    return enrichedMonthInFlight[monthKey]!
+  }
+
+  const req = apiGet<ApiListResponse<DealRow>>(
+    `/deals-with-companies?month=${encodeURIComponent(monthKey)}`,
+  )
+    .then((res) => {
+      const rows = filterNewCustomersPipeline(res.data ?? [])
+      pipelineSession.monthDealsCache[monthKey] = rows
+      clearOverviewMonthMapCache()
+      return rows
+    })
+    .finally(() => {
+      delete enrichedMonthInFlight[monthKey]
+    })
+
+  enrichedMonthInFlight[monthKey] = req
+  return req
+}
+
 export async function fetchAllPipelineDeals(): Promise<DealRow[]> {
   if (pipelineSession.allDeals) return pipelineSession.allDeals
   if (pipelineSession.inFlight) return pipelineSession.inFlight
@@ -54,6 +82,7 @@ export async function fetchAllPipelineDeals(): Promise<DealRow[]> {
     .then((res) => {
       const rows = filterNewCustomersPipeline(res.data ?? [])
       pipelineSession.allDeals = rows
+      clearOverviewMonthMapCache()
       return rows
     })
     .finally(() => {
@@ -68,4 +97,6 @@ export function clearPipelineSession(): void {
   pipelineSession.allDeals = null
   pipelineSession.inFlight = null
   pipelineSession.monthDealsCache = {}
+  for (const k of Object.keys(enrichedMonthInFlight)) delete enrichedMonthInFlight[k]
+  clearOverviewMonthMapCache()
 }

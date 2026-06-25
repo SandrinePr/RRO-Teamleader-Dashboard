@@ -21,6 +21,7 @@ export type ManualDealsStageId =
   | 'offerte_geweigerd'
 
 export type ManualOverviewStage =
+  | 'Leads Appointment Setting Selah'
   | 'Discovery call voorgesteld'
   | 'Discovery call ingepland'
   | 'Discovery call plaatsgevonden'
@@ -38,6 +39,7 @@ const OFFERTE_STAGES: ManualDealsStageId[] = [
 
 function overviewFromDeals(m: ManualDealsMonth): ManualOverviewMonth {
   return {
+    'Leads Appointment Setting Selah': m.leads_appointment_setting_selah?.length ?? 0,
     'Discovery call voorgesteld': m.discovery_voorgesteld?.length ?? 0,
     'Discovery call ingepland': m.discovery_gepland?.length ?? 0,
     'Discovery call plaatsgevonden': m.discovery_plaatsgevonden?.length ?? 0,
@@ -304,18 +306,18 @@ export const manualDealsByMonth: Record<string, ManualDealsMonth> = {
  * Bron: TOTAAL jan; Closing feb–jun; Discovery jul–dec.
  */
 const OVERVIEW_2025: Record<string, ManualOverviewMonth> = {
-  '2025-01': { 'Discovery call voorgesteld': 7, 'Discovery call ingepland': 3, 'Discovery call plaatsgevonden': 4, 'Offerte verzonden': 4, 'Offerte geaccepteerd': 2 },
-  '2025-02': { 'Discovery call voorgesteld': 6, 'Discovery call ingepland': 7, 'Discovery call plaatsgevonden': 5, 'Offerte verzonden': 1, 'Offerte geaccepteerd': 0 },
-  '2025-03': { 'Discovery call voorgesteld': 3, 'Discovery call ingepland': 5, 'Discovery call plaatsgevonden': 6, 'Offerte verzonden': 7, 'Offerte geaccepteerd': 1 },
-  '2025-04': { 'Discovery call voorgesteld': 8, 'Discovery call ingepland': 2, 'Discovery call plaatsgevonden': 0, 'Offerte verzonden': 0, 'Offerte geaccepteerd': 1 },
-  '2025-05': { 'Discovery call voorgesteld': 7, 'Discovery call ingepland': 7, 'Discovery call plaatsgevonden': 7, 'Offerte verzonden': 5, 'Offerte geaccepteerd': 0 },
-  '2025-06': { 'Discovery call voorgesteld': 1, 'Discovery call ingepland': 0, 'Discovery call plaatsgevonden': 1, 'Offerte verzonden': 2, 'Offerte geaccepteerd': 1 },
-  '2025-07': { 'Discovery call voorgesteld': 1, 'Discovery call ingepland': 0, 'Discovery call plaatsgevonden': 1, 'Offerte verzonden': 2, 'Offerte geaccepteerd': 1 },
-  '2025-08': { 'Discovery call voorgesteld': 0, 'Discovery call ingepland': 0, 'Discovery call plaatsgevonden': 0, 'Offerte verzonden': 0, 'Offerte geaccepteerd': 1 },
-  '2025-09': { 'Discovery call voorgesteld': 2, 'Discovery call ingepland': 2, 'Discovery call plaatsgevonden': 0, 'Offerte verzonden': 2, 'Offerte geaccepteerd': 1 },
-  '2025-10': { 'Discovery call voorgesteld': 1, 'Discovery call ingepland': 0, 'Discovery call plaatsgevonden': 0, 'Offerte verzonden': 0, 'Offerte geaccepteerd': 0 },
-  '2025-11': { 'Discovery call voorgesteld': 8, 'Discovery call ingepland': 2, 'Discovery call plaatsgevonden': 1, 'Offerte verzonden': 1, 'Offerte geaccepteerd': 0 },
-  '2025-12': { 'Discovery call voorgesteld': 6, 'Discovery call ingepland': 5, 'Discovery call plaatsgevonden': 4, 'Offerte verzonden': 3, 'Offerte geaccepteerd': 1 },
+  '2025-01': { 'Leads Appointment Setting Selah': 0, 'Discovery call voorgesteld': 7, 'Discovery call ingepland': 3, 'Discovery call plaatsgevonden': 4, 'Offerte verzonden': 4, 'Offerte geaccepteerd': 2 },
+  '2025-02': { 'Leads Appointment Setting Selah': 0, 'Discovery call voorgesteld': 6, 'Discovery call ingepland': 7, 'Discovery call plaatsgevonden': 5, 'Offerte verzonden': 1, 'Offerte geaccepteerd': 0 },
+  '2025-03': { 'Leads Appointment Setting Selah': 0, 'Discovery call voorgesteld': 3, 'Discovery call ingepland': 5, 'Discovery call plaatsgevonden': 6, 'Offerte verzonden': 7, 'Offerte geaccepteerd': 1 },
+  '2025-04': { 'Leads Appointment Setting Selah': 0, 'Discovery call voorgesteld': 8, 'Discovery call ingepland': 2, 'Discovery call plaatsgevonden': 0, 'Offerte verzonden': 0, 'Offerte geaccepteerd': 1 },
+  '2025-05': { 'Leads Appointment Setting Selah': 0, 'Discovery call voorgesteld': 7, 'Discovery call ingepland': 7, 'Discovery call plaatsgevonden': 7, 'Offerte verzonden': 5, 'Offerte geaccepteerd': 0 },
+  '2025-06': { 'Leads Appointment Setting Selah': 0, 'Discovery call voorgesteld': 1, 'Discovery call ingepland': 0, 'Discovery call plaatsgevonden': 1, 'Offerte verzonden': 2, 'Offerte geaccepteerd': 1 },
+  '2025-07': { 'Leads Appointment Setting Selah': 0, 'Discovery call voorgesteld': 1, 'Discovery call ingepland': 0, 'Discovery call plaatsgevonden': 1, 'Offerte verzonden': 2, 'Offerte geaccepteerd': 1 },
+  '2025-08': { 'Leads Appointment Setting Selah': 0, 'Discovery call voorgesteld': 0, 'Discovery call ingepland': 0, 'Discovery call plaatsgevonden': 0, 'Offerte verzonden': 0, 'Offerte geaccepteerd': 1 },
+  '2025-09': { 'Leads Appointment Setting Selah': 0, 'Discovery call voorgesteld': 2, 'Discovery call ingepland': 2, 'Discovery call plaatsgevonden': 0, 'Offerte verzonden': 2, 'Offerte geaccepteerd': 1 },
+  '2025-10': { 'Leads Appointment Setting Selah': 0, 'Discovery call voorgesteld': 1, 'Discovery call ingepland': 0, 'Discovery call plaatsgevonden': 0, 'Offerte verzonden': 0, 'Offerte geaccepteerd': 0 },
+  '2025-11': { 'Leads Appointment Setting Selah': 0, 'Discovery call voorgesteld': 8, 'Discovery call ingepland': 2, 'Discovery call plaatsgevonden': 1, 'Offerte verzonden': 1, 'Offerte geaccepteerd': 0 },
+  '2025-12': { 'Leads Appointment Setting Selah': 0, 'Discovery call voorgesteld': 6, 'Discovery call ingepland': 5, 'Discovery call plaatsgevonden': 4, 'Offerte verzonden': 3, 'Offerte geaccepteerd': 1 },
 }
 
 /** Overzicht: afgeleid uit klantlijsten; 2025 uit spreadsheet. */

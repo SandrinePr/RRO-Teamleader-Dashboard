@@ -9,6 +9,7 @@ import type { PipelineTargetStage } from './pipelineTargets'
 export type OverviewMonthMap = Record<PipelineTargetStage, number>
 
 const STAGE_TO_OVERVIEW: Record<string, PipelineTargetStage> = {
+  leads_appointment_setting_selah: 'Leads Appointment Setting Selah',
   discovery_voorgesteld: 'Discovery call voorgesteld',
   discovery_gepland: 'Discovery call ingepland',
   discovery_plaatsgevonden: 'Discovery call plaatsgevonden',
@@ -28,6 +29,7 @@ const PHASE_TO_STAGE: Record<string, string> = {
 
 function emptyOverviewMonth(): OverviewMonthMap {
   return {
+    'Leads Appointment Setting Selah': 0,
     'Discovery call voorgesteld': 0,
     'Discovery call ingepland': 0,
     'Discovery call plaatsgevonden': 0,
@@ -63,90 +65,35 @@ function phaseEntryToStage(phaseIdRaw: string, phaseNameRaw: string): string | n
 }
 
 const OUTCOME_STAGES = new Set(['offerte_aanvaard', 'offerte_geweigerd'])
-
-function explicitStageMonthsByDeal(deal: DealRow): Map<string, string> {
-  const anyDeal = deal as Record<string, unknown>
-  const hist = anyDeal.phase_history as Array<Record<string, unknown>> | undefined
-  if (!Array.isArray(hist)) return new Map<string, string>()
-  const explicitMonthsByStage = new Map<string, string>()
-  for (const entry of hist) {
-    const phase = (entry.phase as Record<string, unknown> | undefined) ?? undefined
-    const phaseId = String(phase?.id ?? '').toLowerCase()
-    const phaseName = String(phase?.name ?? '')
-    const startedAt = String(entry.started_at ?? '')
-    const stage = phaseEntryToStage(phaseId, phaseName)
-    if (!stage) continue
-    const m = toMonthKey(startedAt)
-    if (!m) continue
-    if (!explicitMonthsByStage.has(stage)) explicitMonthsByStage.set(stage, m)
-  }
-  return explicitMonthsByStage
-}
-
-function inferStageMonthsByDeal(deal: DealRow): Map<string, string> {
-  const anyDeal = deal as Record<string, unknown>
-  const hist = anyDeal.phase_history as Array<Record<string, unknown>> | undefined
-  if (!Array.isArray(hist)) return new Map<string, string>()
-  const explicitMonthsByStage = new Map<string, string>()
-  for (const entry of hist) {
-    const phase = (entry.phase as Record<string, unknown> | undefined) ?? undefined
-    const phaseId = String(phase?.id ?? '').toLowerCase()
-    const phaseName = String(phase?.name ?? '')
-    const startedAt = String(entry.started_at ?? '')
-    const stage = phaseEntryToStage(phaseId, phaseName)
-    if (!stage) continue
-    const m = toMonthKey(startedAt)
-    if (!m) continue
-    if (!explicitMonthsByStage.has(stage)) explicitMonthsByStage.set(stage, m)
-  }
-
-  const current = getDealPipelineStage(deal)
-  const baseOrder = [
-    'leads_appointment_setting_selah',
-    'discovery_voorgesteld',
-    'discovery_gepland',
-    'discovery_plaatsgevonden',
-    'offerte_verzonden',
-  ]
-  const stageOrder =
-    current === 'offerte_geweigerd'
-      ? [...baseOrder, 'offerte_geweigerd']
-      : [...baseOrder, 'offerte_aanvaard']
-
-  const hasLaterExplicit = (idx: number): boolean => {
-    for (let i = idx + 1; i < stageOrder.length; i++) {
-      if (explicitMonthsByStage.get(stageOrder[i]!)) return true
-    }
-    return false
-  }
-  let inheritedMonth = ''
-  const inferredMonthsByStage = new Map<string, string>()
-  for (let i = 0; i < stageOrder.length; i++) {
-    const st = stageOrder[i]!
-    const explicit = explicitMonthsByStage.get(st) ?? ''
-    if (explicit) {
-      inheritedMonth = explicit
-      inferredMonthsByStage.set(st, explicit)
-      continue
-    }
-    if (inheritedMonth && hasLaterExplicit(i)) {
-      inferredMonthsByStage.set(st, inheritedMonth)
-    }
-  }
-  return inferredMonthsByStage
-}
+const VISIBLE_DEAL_STAGES = new Set<string>(DEALS_OFFERTES_STAGES.map(({ id }) => id))
 
 function stagesReachedInMonth(deal: DealRow, monthKey: string): Set<string> {
-  const inferred = inferStageMonthsByDeal(deal)
-  const explicit = explicitStageMonthsByDeal(deal)
+  const anyDeal = deal as Record<string, unknown>
+  const hist = anyDeal.phase_history as Array<Record<string, unknown>> | undefined
   const out = new Set<string>()
-  for (const [st, inferredMonth] of inferred.entries()) {
-    if (inferredMonth !== monthKey) continue
-    if (OUTCOME_STAGES.has(st)) {
-      if (explicit.get(st) === monthKey) out.add(st)
-    } else {
-      out.add(st)
+
+  if (Array.isArray(hist) && hist.length > 0) {
+    for (const entry of hist) {
+      const phase = (entry.phase as Record<string, unknown> | undefined) ?? undefined
+      const phaseId = String(phase?.id ?? '').toLowerCase()
+      const phaseName = String(phase?.name ?? '')
+      const startedAt = String(entry.started_at ?? entry.entered_at ?? '')
+      const stage = phaseEntryToStage(phaseId, phaseName)
+      if (!stage || !VISIBLE_DEAL_STAGES.has(stage)) continue
+      if (toMonthKey(startedAt) !== monthKey) continue
+      out.add(stage)
     }
+    return out
+  }
+
+  const fallbackStage = getDealPipelineStage(deal)
+  if (
+    fallbackStage &&
+    VISIBLE_DEAL_STAGES.has(fallbackStage) &&
+    !OUTCOME_STAGES.has(fallbackStage) &&
+    dealTouchesMonth(deal, monthKey)
+  ) {
+    out.add(fallbackStage)
   }
   return out
 }
@@ -271,11 +218,20 @@ export function buildDealsByStageForMonth(
 }
 
 /** Overzicht-kolommen = subtotalen per Deals-kolom (niet cumulatief op huidige fase). */
+const overviewMonthMapCache: Record<string, OverviewMonthMap> = {}
+
+export function clearOverviewMonthMapCache(): void {
+  for (const k of Object.keys(overviewMonthMapCache)) delete overviewMonthMapCache[k]
+}
+
 export function overviewMonthMapFromDeals(deals: DealRow[], monthKey: string): OverviewMonthMap {
+  const cached = overviewMonthMapCache[monthKey]
+  if (cached) return cached
   const byStage = buildDealsByStageForMonth(deals, monthKey)
   const out = emptyOverviewMonth()
   for (const [stageId, overviewKey] of Object.entries(STAGE_TO_OVERVIEW)) {
     out[overviewKey] = byStage[stageId]?.length ?? 0
   }
+  overviewMonthMapCache[monthKey] = out
   return out
 }
