@@ -224,11 +224,8 @@ export function Overview() {
         overviewCacheVersion[year] = cacheToken
         if (isAuth) {
           clearPipelineSession()
-          const apiBase = resolveApiBase() || window.location.origin
           setError(null)
-          setFetchHint(
-            `Live pipeline-cijfers (vanaf juni 2026) laden na inloggen bij Teamleader: open ${apiBase}/auth/login. Controle: ${apiBase}/auth/info`,
-          )
+          setFetchHint('login')
         } else {
           setError(msg)
           setFetchHint(null)
@@ -280,7 +277,14 @@ export function Overview() {
         </p>
       )}
       {error && <p className="dashboard-error">{error}</p>}
-      {fetchHint && !error && <p className="pipeline-discovery-empty">{fetchHint}</p>}
+      {fetchHint && !error && (
+        <p className="pipeline-discovery-empty">
+          Live pipeline-cijfers (vanaf juni 2026) laden na inloggen bij Teamleader.{' '}
+          <a href={`${resolveApiBase() || window.location.origin}/auth/login`}>Log in bij Teamleader</a>
+          {' · '}
+          <a href={`${resolveApiBase() || window.location.origin}/auth/info`}>Auth-controle</a>
+        </p>
+      )}
 
       <div className="overview-table-wrap rro-table-wrap">
         <table className="overview-table rro-table">

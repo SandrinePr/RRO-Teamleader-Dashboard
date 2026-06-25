@@ -8,13 +8,31 @@ import { PIPELINE_STAGES, DEALS_OFFERTES_STAGES, getDealPipelineStage } from './
 import { stagesReachedInMonth } from './pipelineMonthOverview'
 import { buildManualDealsByStage } from './manualPipeline'
 import { stageTargetsByIdForYear } from './pipelineTargets'
-import { fetchEnrichedDealsForMonth } from './pipelineSession'
+import { fetchEnrichedDealsForMonth, clearPipelineSession } from './pipelineSession'
 import { isManualPipelineMonth } from './manualPipeline'
 import redRockWordmark from './assets/red-rock-wordmark.svg'
 
 const CHART_COLORS = ['#4a9eff', '#6bcf7f', '#e57373', '#f0ad4e', '#9b59b6']
 
 export function Layout() {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const auth = params.get('auth')
+    if (auth === 'ok') {
+      clearPipelineSession()
+      params.delete('auth')
+      const qs = params.toString()
+      window.location.replace(`${window.location.pathname}${qs ? `?${qs}` : ''}`)
+      return
+    }
+    if (auth === 'failed' || auth === 'no_token') {
+      params.delete('auth')
+      const qs = params.toString()
+      window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`)
+      window.alert('Inloggen bij Teamleader is mislukt. Probeer opnieuw via /auth/login.')
+    }
+  }, [])
+
   useEffect(() => {
     const now = new Date()
     const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
