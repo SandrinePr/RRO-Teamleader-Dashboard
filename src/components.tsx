@@ -37,7 +37,11 @@ export function Layout() {
     const now = new Date()
     const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
     if (!isManualPipelineMonth(ym)) {
-      void fetchEnrichedDealsForMonth(ym).catch(() => {})
+      // Uitstellen zodat Overzicht eerst Teamleader mag benaderen (rate-limit).
+      const t = window.setTimeout(() => {
+        void fetchEnrichedDealsForMonth(ym).catch(() => {})
+      }, 8000)
+      return () => window.clearTimeout(t)
     }
   }, [])
 

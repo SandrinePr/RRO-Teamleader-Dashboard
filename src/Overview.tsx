@@ -65,15 +65,13 @@ async function refreshApiMonthsInYearData(
   onMonthLoaded?: (ym: string, map: MonthMap) => void,
 ): Promise<YearData> {
   const out = { ...base }
-  const apiMonths = apiMonthKeysForYear(year, now)
-  await Promise.all(
-    apiMonths.map(async (ym) => {
-      const deals = await fetchEnrichedDealsForMonth(ym)
-      const map = overviewMonthMapFromDeals(deals, ym)
-      out[ym] = map
-      onMonthLoaded?.(ym, map)
-    }),
-  )
+  // Teamleader rate-limit: één maand tegelijk (parallel = TooManyRequests).
+  for (const ym of apiMonthKeysForYear(year, now)) {
+    const deals = await fetchEnrichedDealsForMonth(ym)
+    const map = overviewMonthMapFromDeals(deals, ym)
+    out[ym] = map
+    onMonthLoaded?.(ym, map)
+  }
   return out
 }
 
@@ -203,7 +201,7 @@ export function Overview() {
 
         const apiMonths = apiMonthKeysForYear(year, now)
         if (apiMonths.length > 0) {
-          setLoadingProgress(`Teamleader: ${apiMonths.join(', ')} ophalen (met fase-historie)…`)
+          setLoadingProgress(`Teamleader: maanden ophalen (één voor één, met fase-historie)…`)
         }
         if (overviewLoadSeq.current !== seq) return
 
@@ -211,6 +209,7 @@ export function Overview() {
         const yearData = apiMonths.length > 0
           ? await refreshApiMonthsInYearData(base, year, now, (ym, map) => {
               if (overviewLoadSeq.current !== seq) return
+              setLoadingProgress(`Teamleader: ${ym} geladen…`)
               setData((prev) => ({ ...prev, [ym]: map }))
             })
           : base
@@ -237,7 +236,10 @@ export function Overview() {
           setError(null)
           setFetchHint('login')
         } else {
-          setError(msg)
+          const friendly = /toomanyrequests|429/i.test(msg)
+            ? 'Teamleader is tijdelijk overbelast (te veel requests). Wacht 1–2 minuten en ververs de pagina.'
+            : msg
+          setError(friendly)
           setFetchHint(null)
         }
       } finally {
