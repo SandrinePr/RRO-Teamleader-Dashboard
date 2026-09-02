@@ -14,6 +14,24 @@ import redRockWordmark from './assets/red-rock-wordmark.svg'
 
 const CHART_COLORS = ['#4a9eff', '#6bcf7f', '#e57373', '#f0ad4e', '#9b59b6']
 
+export function DataLoadingBanner({
+  title = 'Gegevens worden opgehaald…',
+  detail,
+}: {
+  title?: string
+  detail?: string | null
+}) {
+  return (
+    <div className="rro-loading-banner" role="status" aria-live="polite" aria-busy="true">
+      <span className="rro-loading-spinner" aria-hidden="true" />
+      <div className="rro-loading-copy">
+        <strong className="rro-loading-title">{title}</strong>
+        {detail ? <span className="rro-loading-detail">{detail}</span> : null}
+      </div>
+    </div>
+  )
+}
+
 export function Layout() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)

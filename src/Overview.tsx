@@ -4,6 +4,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { DataLoadingBanner } from './components'
 import { resolveApiBase, type DealRow } from './api'
 import { overviewMonthMapFromDeals } from './pipelineMonthOverview'
 import {
@@ -282,9 +283,10 @@ export function Overview() {
       </label>
 
       {loading && (
-        <p className="pipeline-discovery-empty">
-          Bezig met ophalen…{loadingProgress ? ` ${loadingProgress}` : ''}
-        </p>
+        <DataLoadingBanner
+          title="Teamleader-gegevens worden geladen"
+          detail={loadingProgress ?? 'Even geduld — de maandtabellen worden gevuld.'}
+        />
       )}
       {error && <p className="dashboard-error">{error}</p>}
       {fetchHint && !error && (
@@ -296,7 +298,7 @@ export function Overview() {
         </p>
       )}
 
-      <div className="overview-table-wrap rro-table-wrap">
+      <div className={`overview-table-wrap rro-table-wrap${loading ? ' rro-table-wrap--loading' : ''}`}>
         <table className="overview-table rro-table">
           <thead>
             <tr>
@@ -332,7 +334,7 @@ export function Overview() {
         </table>
       </div>
 
-      <div className="overview-table-wrap rro-table-wrap">
+      <div className={`overview-table-wrap rro-table-wrap${loading ? ' rro-table-wrap--loading' : ''}`}>
         <table className="overview-table rro-table">
           <thead>
             <tr>

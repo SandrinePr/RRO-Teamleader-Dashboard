@@ -262,6 +262,59 @@ a {
 .pipeline-discovery-table tbody tr:hover td { background: #e2e8f0; }
 .pipeline-discovery-empty { margin: 1rem 0 0 0; font-size: 0.85rem; color: rgba(255, 255, 255, 0.5); }
 
+.rro-loading-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  margin: 1rem 0 0.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(251, 146, 60, 0.35);
+  background: rgba(30, 41, 59, 0.92);
+  box-shadow: 0 4px 20px rgba(2, 6, 23, 0.35);
+}
+
+.rro-loading-spinner {
+  flex-shrink: 0;
+  width: 1.35rem;
+  height: 1.35rem;
+  margin-top: 0.1rem;
+  border: 2.5px solid rgba(251, 146, 60, 0.25);
+  border-top-color: $rr-accent;
+  border-radius: 50%;
+  animation: rro-spin 0.75s linear infinite;
+}
+
+.rro-loading-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.rro-loading-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $rr-text;
+}
+
+.rro-loading-detail {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: $rr-text-dim;
+}
+
+.rro-table-wrap--loading {
+  position: relative;
+  opacity: 0.55;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+@keyframes rro-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Deals & Offertes */
 .dashboard-deals-only { max-width: 1800px; }
 .deals-offertes-toolbar { margin-bottom: 1.25rem; }

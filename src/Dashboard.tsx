@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiGet, type ApiListResponse, type DealRow, type CompanyRow, type ContactRow, type UserRow } from './api'
-import { DealsOffertesExcel } from './components'
+import { DealsOffertesExcel, DataLoadingBanner } from './components'
 import {
   dealTouchesMonth,
   fetchAllPipelineDeals,
@@ -256,9 +256,10 @@ export function Dashboard() {
       </div>
       {error && <p className="dashboard-error">{error}</p>}
       {dealsLoading && (
-        <p className="pipeline-discovery-empty">
-          Bezig met ophalen…{loadingHint ? ` ${loadingHint}` : ''}
-        </p>
+        <DataLoadingBanner
+          title="Deals worden geladen"
+          detail={loadingHint ?? 'Even geduld — klanten en fases worden opgehaald uit Teamleader.'}
+        />
       )}
       <DealsOffertesExcel
         deals={deals}
