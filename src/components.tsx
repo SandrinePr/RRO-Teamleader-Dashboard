@@ -37,11 +37,7 @@ export function Layout() {
     const now = new Date()
     const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
     if (!isManualPipelineMonth(ym)) {
-      // Uitstellen zodat Overzicht eerst Teamleader mag benaderen (rate-limit).
-      const t = window.setTimeout(() => {
-        void fetchEnrichedDealsForMonth(ym).catch(() => {})
-      }, 8000)
-      return () => window.clearTimeout(t)
+      void fetchEnrichedDealsForMonth(ym).catch(() => {})
     }
   }, [])
 
@@ -734,9 +730,14 @@ export function DealsOffertesExcel({
                 continue
               }
 
-              // Fallback: nieuwe deal zonder history in deze maand naar eerste zichtbare kolom.
-              if (!hasHistory && createdMonth === value && fallbackStage === 'lead_gekwalificeerd') {
-                dbg(`${dealId} | ${displayRaw} | strict_fallback=discovery_voorgesteld(created_at)`)
+              // Fallback: nieuwe deal zonder history in deze maand naar leads-kolom.
+              if (
+                !hasHistory &&
+                createdMonth === value &&
+                (fallbackStage === 'lead_gekwalificeerd' ||
+                  fallbackStage === 'leads_appointment_setting_selah')
+              ) {
+                dbg(`${dealId} | ${displayRaw} | strict_fallback=leads_appointment_setting_selah(created_at)`)
                 fallbackAsFirstVisible = true
               } else {
                 monthRowsUnknownStage++
@@ -771,7 +772,7 @@ export function DealsOffertesExcel({
 
             // 3) Plaats deal in juiste kolom(men).
             if (fallbackAsFirstVisible) {
-              byStageActual.discovery_voorgesteld.push(d)
+              byStageActual.leads_appointment_setting_selah.push(d)
               monthRowsFallbackPlaced++
             } else {
               for (const st of reached) {

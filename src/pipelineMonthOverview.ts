@@ -67,6 +67,12 @@ function phaseEntryToStage(phaseIdRaw: string, phaseNameRaw: string): string | n
 const OUTCOME_STAGES = new Set(['offerte_aanvaard', 'offerte_geweigerd'])
 const VISIBLE_DEAL_STAGES = new Set<string>(DEALS_OFFERTES_STAGES.map(({ id }) => id))
 
+/** Teamleader-fase "Lead gekwalificeerd" hoort in de eerste funnel-kolom (Selah). */
+function stageForVisibleColumn(stage: string): string {
+  if (stage === 'lead_gekwalificeerd') return 'leads_appointment_setting_selah'
+  return stage
+}
+
 function stagesReachedInMonth(deal: DealRow, monthKey: string): Set<string> {
   const anyDeal = deal as Record<string, unknown>
   const hist = anyDeal.phase_history as Array<Record<string, unknown>> | undefined
@@ -78,15 +84,17 @@ function stagesReachedInMonth(deal: DealRow, monthKey: string): Set<string> {
       const phaseId = String(phase?.id ?? '').toLowerCase()
       const phaseName = String(phase?.name ?? '')
       const startedAt = String(entry.started_at ?? entry.entered_at ?? '')
-      const stage = phaseEntryToStage(phaseId, phaseName)
-      if (!stage || !VISIBLE_DEAL_STAGES.has(stage)) continue
+      const rawStage = phaseEntryToStage(phaseId, phaseName)
+      if (!rawStage) continue
+      const stage = stageForVisibleColumn(rawStage)
+      if (!VISIBLE_DEAL_STAGES.has(stage)) continue
       if (toMonthKey(startedAt) !== monthKey) continue
       out.add(stage)
     }
     return out
   }
 
-  const fallbackStage = getDealPipelineStage(deal)
+  const fallbackStage = stageForVisibleColumn(getDealPipelineStage(deal) ?? '')
   if (
     fallbackStage &&
     VISIBLE_DEAL_STAGES.has(fallbackStage) &&
@@ -183,20 +191,26 @@ export function buildDealsByStageForMonth(
         ((d as Record<string, unknown>).phase_history as unknown[]).length > 0
       const createdMonth = toMonthKey(String(d.created_at ?? ''))
       const fallbackStage = getDealPipelineStage(d)
+      const visibleFallback = fallbackStage ? stageForVisibleColumn(fallbackStage) : null
 
       if (
         !hasHistory &&
+        visibleFallback &&
         fallbackStage &&
         !OUTCOME_STAGES.has(fallbackStage) &&
-        byStageActual[fallbackStage] &&
+        byStageActual[visibleFallback] &&
         dealTouchesMonth(d, monthKey)
       ) {
         if (isOldCustomer(d)) continue
-        byStageActual[fallbackStage].push(d)
+        byStageActual[visibleFallback].push(d)
         continue
       }
 
-      if (!hasHistory && createdMonth === monthKey && fallbackStage === 'lead_gekwalificeerd') {
+      if (
+        !hasHistory &&
+        createdMonth === monthKey &&
+        stageForVisibleColumn(fallbackStage ?? '') === 'leads_appointment_setting_selah'
+      ) {
         fallbackAsFirstVisible = true
       } else {
         continue
@@ -206,7 +220,7 @@ export function buildDealsByStageForMonth(
     if (isOldCustomer(d)) continue
 
     if (fallbackAsFirstVisible) {
-      byStageActual.discovery_voorgesteld.push(d)
+      byStageActual.leads_appointment_setting_selah.push(d)
     } else {
       for (const st of reached) {
         if (byStageActual[st]) byStageActual[st].push(d)

@@ -36,7 +36,7 @@ type YearData = Record<string, MonthMap | null>
 const overviewYearDataCache: Record<number, YearData> = {}
 const overviewCacheVersion: Record<number, string> = {}
 /** Bump na wijziging handmatige pipeline-data (invalidates browser-sessie-cache). */
-const OVERVIEW_DATA_VERSION = 13
+const OVERVIEW_DATA_VERSION = 14
 
 /** Invalideer cache bij nieuwe kalendermaand (2026 groeit t/m huidige maand). */
 function overviewCacheToken(year: number, now: Date): string {
@@ -65,13 +65,15 @@ async function refreshApiMonthsInYearData(
   onMonthLoaded?: (ym: string, map: MonthMap) => void,
 ): Promise<YearData> {
   const out = { ...base }
-  // Teamleader rate-limit: één maand tegelijk (parallel = TooManyRequests).
-  for (const ym of apiMonthKeysForYear(year, now)) {
-    const deals = await fetchEnrichedDealsForMonth(ym)
-    const map = overviewMonthMapFromDeals(deals, ym)
-    out[ym] = map
-    onMonthLoaded?.(ym, map)
-  }
+  const apiMonths = apiMonthKeysForYear(year, now)
+  await Promise.all(
+    apiMonths.map(async (ym) => {
+      const deals = await fetchEnrichedDealsForMonth(ym)
+      const map = overviewMonthMapFromDeals(deals, ym)
+      out[ym] = map
+      onMonthLoaded?.(ym, map)
+    }),
+  )
   return out
 }
 
@@ -201,7 +203,7 @@ export function Overview() {
 
         const apiMonths = apiMonthKeysForYear(year, now)
         if (apiMonths.length > 0) {
-          setLoadingProgress(`Teamleader: maanden ophalen (één voor één, met fase-historie)…`)
+          setLoadingProgress(`Teamleader: ${apiMonths.join(', ')} ophalen (met fase-historie)…`)
         }
         if (overviewLoadSeq.current !== seq) return
 
@@ -209,7 +211,6 @@ export function Overview() {
         const yearData = apiMonths.length > 0
           ? await refreshApiMonthsInYearData(base, year, now, (ym, map) => {
               if (overviewLoadSeq.current !== seq) return
-              setLoadingProgress(`Teamleader: ${ym} geladen…`)
               setData((prev) => ({ ...prev, [ym]: map }))
             })
           : base
@@ -236,10 +237,7 @@ export function Overview() {
           setError(null)
           setFetchHint('login')
         } else {
-          const friendly = /toomanyrequests|429/i.test(msg)
-            ? 'Teamleader is tijdelijk overbelast (te veel requests). Wacht 1–2 minuten en ververs de pagina.'
-            : msg
-          setError(friendly)
+          setError(msg)
           setFetchHint(null)
         }
       } finally {
