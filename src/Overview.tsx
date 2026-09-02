@@ -36,7 +36,7 @@ type YearData = Record<string, MonthMap | null>
 const overviewYearDataCache: Record<number, YearData> = {}
 const overviewCacheVersion: Record<number, string> = {}
 /** Bump na wijziging handmatige pipeline-data (invalidates browser-sessie-cache). */
-const OVERVIEW_DATA_VERSION = 12
+const OVERVIEW_DATA_VERSION = 13
 
 /** Invalideer cache bij nieuwe kalendermaand (2026 groeit t/m huidige maand). */
 function overviewCacheToken(year: number, now: Date): string {
@@ -62,12 +62,18 @@ async function refreshApiMonthsInYearData(
   base: YearData,
   year: number,
   now: Date,
+  onMonthLoaded?: (ym: string, map: MonthMap) => void,
 ): Promise<YearData> {
   const out = { ...base }
-  for (const ym of apiMonthKeysForYear(year, now)) {
-    const deals = await fetchEnrichedDealsForMonth(ym)
-    out[ym] = overviewMonthMapFromDeals(deals, ym)
-  }
+  const apiMonths = apiMonthKeysForYear(year, now)
+  await Promise.all(
+    apiMonths.map(async (ym) => {
+      const deals = await fetchEnrichedDealsForMonth(ym)
+      const map = overviewMonthMapFromDeals(deals, ym)
+      out[ym] = map
+      onMonthLoaded?.(ym, map)
+    }),
+  )
   return out
 }
 
@@ -108,7 +114,8 @@ function buildYearOverviewData(allDeals: DealRow[], year: number, now: Date): Ye
       out[ym] = null
       continue
     }
-    out[ym] = overviewMonthMapFromDeals(allDeals, ym)
+    // API-maanden: geen misleidende nullen vóór live Teamleader-data.
+    out[ym] = allDeals.length > 0 ? overviewMonthMapFromDeals(allDeals, ym) : null
   }
   return out
 }
@@ -202,7 +209,10 @@ export function Overview() {
 
         const base = cacheHit ? { ...cached! } : buildManualYearOverviewData(year, now)
         const yearData = apiMonths.length > 0
-          ? await refreshApiMonthsInYearData(base, year, now)
+          ? await refreshApiMonthsInYearData(base, year, now, (ym, map) => {
+              if (overviewLoadSeq.current !== seq) return
+              setData((prev) => ({ ...prev, [ym]: map }))
+            })
           : base
         if (overviewLoadSeq.current !== seq) return
 
